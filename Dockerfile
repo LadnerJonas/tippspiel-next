@@ -6,9 +6,6 @@ ENV POSTGRES_USER postgres
 ENV POSTGRES_PASSWORD postgres
 ENV POSTGRES_DB tippspiel
 
-# Copy the SQL schema file into the container
-#ADD db/schema.sql /docker-entrypoint-initdb.d/
-
 # Install Node.js and npm
 RUN apt-get update && apt-get install -y curl && \
     curl -fsSL https://deb.nodesource.com/setup_21.x | bash - && \

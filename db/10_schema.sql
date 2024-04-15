@@ -1,3 +1,10 @@
+drop table if exists Bet CASCADE ;
+drop table if exists CommunityMember CASCADE;
+drop table if exists Community CASCADE;
+drop table if exists PinnedUser CASCADE;
+drop table if exists Game CASCADE;
+drop table if exists "User" CASCADE;
+
 -- Create the "User" table
 CREATE TABLE "User" (
                         id SERIAL PRIMARY KEY,
@@ -52,14 +59,14 @@ CREATE OR REPLACE FUNCTION update_bet_points()
 RETURNS TRIGGER AS $$
 BEGIN
   -- Calculate points_earned based on the difference between home_score and away_score
-UPDATE Bet
+UPDATE Bet b
 SET points_earned =
         CASE
-            WHEN NEW.home_team_goals = OLD.home_score AND NEW.away_team_goals = OLD.away_score THEN 8  -- Exact match
-            WHEN NEW.home_team_goals - NEW.away_team_goals = OLD.home_score - OLD.away_score THEN 6    -- Correct goal difference
-            WHEN (NEW.home_team_goals > NEW.away_team_goals AND OLD.home_score > OLD.away_score) OR
-                 (NEW.home_team_goals = NEW.away_team_goals AND OLD.home_score = OLD.away_score) OR
-                 (NEW.home_team_goals < NEW.away_team_goals AND OLD.home_score < OLD.away_score) THEN 4 -- Correct tendency
+            WHEN NEW.home_score = home_team_goals AND NEW.away_score = away_team_goals THEN 8  -- Exact match
+            WHEN NEW.home_score - NEW.away_score = home_team_goals - away_team_goals THEN 6    -- Correct goal difference
+            WHEN (NEW.home_score > NEW.away_score AND home_team_goals > away_team_goals) OR
+                 (NEW.home_score = NEW.away_score AND home_team_goals = away_team_goals) OR
+                 (NEW.home_score < NEW.away_score AND home_team_goals < away_team_goals) THEN 4 -- Correct tendency
             ELSE 0 -- Incorrect bet
             END
 WHERE game_id = NEW.id;
