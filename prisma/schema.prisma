@@ -1,0 +1,67 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["relationJoins"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                                         Int               @id @default(autoincrement())
+  username                                   String            @unique @db.VarChar(255)
+  created_at                                 DateTime?         @default(now()) @db.Timestamp(6)
+  bet                                        bet[]
+  communitymember                            communitymember[]
+  pinneduser_pinneduser_pinned_user_idToUser pinneduser[]      @relation("pinneduser_pinned_user_idToUser")
+  pinneduser_pinneduser_user_idToUser        pinneduser[]      @relation("pinneduser_user_idToUser")
+}
+
+model bet {
+  id              Int       @id @default(autoincrement())
+  user_id         Int?
+  game_id         Int?
+  home_team_goals Int?
+  away_team_goals Int?
+  points_earned   Int?      @default(0)
+  created_at      DateTime? @default(now()) @db.Timestamp(6)
+  game            game?     @relation(fields: [game_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  User            User?     @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model community {
+  id              Int               @id @default(autoincrement())
+  name            String            @db.VarChar(255)
+  created_at      DateTime?         @default(now()) @db.Timestamp(6)
+  communitymember communitymember[]
+}
+
+model communitymember {
+  id           Int        @id @default(autoincrement())
+  community_id Int?
+  user_id      Int?
+  community    community? @relation(fields: [community_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  User         User?      @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model game {
+  id         Int       @id @default(autoincrement())
+  home_team  String    @db.VarChar(255)
+  away_team  String    @db.VarChar(255)
+  start_time DateTime  @db.Timestamp(6)
+  end_time   DateTime  @db.Timestamp(6)
+  home_score Int?
+  away_score Int?
+  updated_at DateTime? @default(now()) @db.Timestamp(6)
+  bet        bet[]
+}
+
+model pinneduser {
+  user_id                              Int
+  pinned_user_id                       Int
+  User_pinneduser_pinned_user_idToUser User @relation("pinneduser_pinned_user_idToUser", fields: [pinned_user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  User_pinneduser_user_idToUser        User @relation("pinneduser_user_idToUser", fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([user_id, pinned_user_id])
+}
