@@ -1,5 +1,4 @@
 import { useEffect } from 'react';
-import { notifyClients } from '../pages/api/websocket';
 
 export default function WebSocketComponent({ fetchData }) {
     useEffect(() => {
