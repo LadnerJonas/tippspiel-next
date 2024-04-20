@@ -98,3 +98,6 @@ SELECT
     floor(random() * 5)
 FROM
     "User" CROSS JOIN generate_series(1, 3) limit 1000;
+
+REFRESH MATERIALIZED VIEW UserTotalPoints;
+REFRESH MATERIALIZED VIEW RankedUsersMV;

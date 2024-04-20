@@ -112,17 +112,13 @@ GROUP BY
     u.id, u.username;
 
 -- Create a trigger to update the materialized view on each transaction
-CREATE OR REPLACE FUNCTION update_user_total_points()
+CREATE OR REPLACE FUNCTION refresh_user_total_points()
     RETURNS TRIGGER AS $$
 BEGIN
     REFRESH MATERIALIZED VIEW UserTotalPoints;
     RETURN NULL;
 END;
 $$ LANGUAGE plpgsql;
-
-CREATE TRIGGER update_user_total_points_trigger
-    AFTER UPDATE OF points_earned ON Bet
-EXECUTE FUNCTION update_user_total_points();
 
 -- Create the view for Community Leaderboards for all users
 CREATE OR REPLACE VIEW  CommunityLeaderboard_AllUsers AS
@@ -154,6 +150,47 @@ SELECT
 FROM
     RankedUsers RU;
 
+CREATE MATERIALIZED VIEW RankedUsersMV AS
+SELECT
+    CM.community_id,
+    CM.user_id,
+    U.username,
+    COALESCE(UT.total_points, 0) AS total_points,
+    CAST (ROW_NUMBER() OVER (PARTITION BY CM.community_id ORDER BY COALESCE(UT.total_points, 0) DESC, U.created_at, U.username) AS INT) AS ranked_user_position,
+    CAST (RANK() OVER (PARTITION BY CM.community_id ORDER BY COALESCE(UT.total_points, 0) DESC, U.created_at) AS INT) AS rank
+FROM
+    CommunityMember CM
+        JOIN
+    "User" U ON CM.user_id = U.id
+        LEFT JOIN
+    UserTotalPoints UT ON CM.user_id = UT.user_id;
+
+-- Create an index on RankedUsersMV for better performance
+CREATE INDEX idx_ranked_users_mv_user_id ON RankedUsersMV(user_id);
+
+-- Create a trigger to refresh the materialized view on changes to UserTotalPoints
+CREATE OR REPLACE FUNCTION refresh_ranked_users_mv()
+    RETURNS TRIGGER AS
+$$
+BEGIN
+    REFRESH MATERIALIZED VIEW UserTotalPoints;
+    REFRESH MATERIALIZED VIEW RankedUsersMV;
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION refresh_user_total_points_and_refresh_ranked_users_mv()
+RETURNS trigger AS $$
+BEGIN
+    PERFORM refresh_user_total_points();
+    PERFORM refresh_ranked_users_mv();
+END; $$
+    LANGUAGE plpgsql;
+
+CREATE TRIGGER update_user_total_points_trigger
+    AFTER UPDATE OF points_earned ON Bet
+EXECUTE FUNCTION refresh_ranked_users_mv();
+
 -- Create a function to generate the sneak preview of Community Leaderboards
 CREATE OR REPLACE FUNCTION generate_sneak_preview_leaderboard(p_community_id INT, logged_in_user_id INT)
     RETURNS TABLE (
@@ -166,68 +203,53 @@ AS
 $$
 BEGIN
     RETURN QUERY
-        WITH RankedUsers AS (
-            SELECT
-                CM.user_id,
-                U.username,
-                UT.total_points,
-                CAST(ROW_NUMBER() OVER (ORDER BY UT.total_points DESC, U.created_at) AS INT) AS ranked_user_position,
-                CAST(RANK() OVER (ORDER BY UT.total_points DESC, U.created_at) AS INT) AS rank
+        WITH
+            RankedUsersMVOfCommunity AS (
+                SELECT *
+                FROM RankedUsersMV RU
+                WHERE RU.community_id = p_community_id
+            ),
+            UserPosition AS (
+            SELECT *
             FROM
-                CommunityMember CM
-                    JOIN
-                "User" U ON CM.user_id = U.id
-                    LEFT JOIN
-                UserTotalPoints UT ON CM.user_id = UT.user_id
+                RankedUsersMVOfCommunity
             WHERE
-                CM.community_id = p_community_id
+                user_id = logged_in_user_id
         ),
-             UserPosition AS (
-                 SELECT
-                     user_id,
-                     username,
-                     total_points,
-                     ranked_user_position,
-                     rank
-                 FROM
-                     RankedUsers
-                 WHERE
-                     user_id = logged_in_user_id
-             ),
              MaxPosition AS (
-                 SELECT MAX(ranked_user_position) AS max_rup FROM RankedUsers
+                 SELECT MAX(ranked_user_position) AS max_rup FROM RankedUsersMV WHERE community_id = p_community_id
              ),
              PreviewUsers AS (
                  /* logged in user */
                  SELECT * FROM UserPosition
-                 UNION DISTINCT
+                 UNION
                  /* first three and last user */
                  SELECT *
-                 FROM RankedUsers RU
-                 WHERE RU.ranked_user_position <= 3 OR RU.ranked_user_position = (SELECT max_rup FROM MaxPosition)
-                 UNION DISTINCT
+                 FROM RankedUsersMVOfCommunity RUOC
+                 WHERE RUOC.ranked_user_position <= 3 OR RUOC.ranked_user_position = (SELECT max_rup FROM MaxPosition)
+                 UNION
                  /* above and below user of logged in user and outside above query */
                  SELECT *
-                 FROM RankedUsers RU
+                 FROM RankedUsersMVOfCommunity RUOC
                  WHERE (SELECT ranked_user_position FROM UserPosition) >= 5 AND (SELECT ranked_user_position FROM UserPosition) <= (SELECT max_rup - 2 FROM MaxPosition)
-                   AND ABS(RU.ranked_user_position - (SELECT ranked_user_position FROM UserPosition)) = 1
-                 UNION DISTINCT
+                   AND ABS(RUOC.ranked_user_position - (SELECT ranked_user_position FROM UserPosition)) = 1
+                 UNION
                  /* logged in user in top 4 */
                  SELECT *
-                 FROM RankedUsers RU
-                 WHERE (SELECT ranked_user_position FROM UserPosition) <= 4 AND RU.ranked_user_position <= 6
-                 UNION DISTINCT
+                 FROM RankedUsersMVOfCommunity RUOC
+                 WHERE (SELECT ranked_user_position FROM UserPosition) <= 4 AND RUOC.ranked_user_position <= 6
+                 UNION
                  /* logged in user in last two place */
                  SELECT *
-                 FROM RankedUsers RU
+                 FROM RankedUsersMVOfCommunity RUOC
                  WHERE (SELECT ranked_user_position FROM UserPosition) > (SELECT max_rup - 2 FROM MaxPosition)
-                   AND RU.ranked_user_position >= (SELECT max_rup - 3 FROM MaxPosition)
-                 UNION DISTINCT
+                   AND RUOC.ranked_user_position >= (SELECT max_rup - 3 FROM MaxPosition)
+                 UNION
                  /* less or equal 7 users */
                  SELECT *
-                 FROM RankedUsers RU WHERE (SELECT max_rup FROM MaxPosition) <= 7
+                 FROM RankedUsersMVOfCommunity RUOC WHERE (SELECT max_rup FROM MaxPosition) <= 7
              )
-        SELECT
+        SELECT DISTINCT on (ranked_user_position)
             PU.username AS f_username,
             PU.total_points AS f_total_points,
             PU.ranked_user_position AS f_ranked_user_position,
@@ -239,6 +261,7 @@ BEGIN
 END;
 $$
     LANGUAGE plpgsql;
+
 
 -- Indexes for faster retrieval
 -- Create index on User.id and User.username
@@ -252,3 +275,5 @@ CREATE INDEX idx_bet_user_id ON Bet(user_id);
 
 -- Create index on Bet.game_id
 CREATE INDEX idx_bet_game_id ON Bet(game_id);
+
+CREATE INDEX idx_ranked_users_mv_community_id ON RankedUsersMV(community_id,ranked_user_position);
