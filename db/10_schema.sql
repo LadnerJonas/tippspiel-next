@@ -215,9 +215,10 @@ BEGIN
                 RankedUsersMVOfCommunity
             WHERE
                 user_id = logged_in_user_id
+            limit 1
         ),
              MaxPosition AS (
-                 SELECT MAX(ranked_user_position) AS max_rup FROM RankedUsersMV WHERE community_id = p_community_id
+                 SELECT MAX(ranked_user_position) AS max_rup FROM RankedUsersMV WHERE community_id = p_community_id limit 1
              ),
              PreviewUsers AS (
                  /* logged in user */
@@ -226,28 +227,14 @@ BEGIN
                  /* first three and last user */
                  SELECT *
                  FROM RankedUsersMVOfCommunity RUOC
-                 WHERE RUOC.ranked_user_position <= 3 OR RUOC.ranked_user_position = (SELECT max_rup FROM MaxPosition)
-                 UNION
-                 /* above and below user of logged in user and outside above query */
-                 SELECT *
-                 FROM RankedUsersMVOfCommunity RUOC
-                 WHERE (SELECT ranked_user_position FROM UserPosition) >= 5 AND (SELECT ranked_user_position FROM UserPosition) <= (SELECT max_rup - 2 FROM MaxPosition)
-                   AND ABS(RUOC.ranked_user_position - (SELECT ranked_user_position FROM UserPosition)) = 1
-                 UNION
-                 /* logged in user in top 4 */
-                 SELECT *
-                 FROM RankedUsersMVOfCommunity RUOC
-                 WHERE (SELECT ranked_user_position FROM UserPosition) <= 4 AND RUOC.ranked_user_position <= 6
-                 UNION
-                 /* logged in user in last two place */
-                 SELECT *
-                 FROM RankedUsersMVOfCommunity RUOC
-                 WHERE (SELECT ranked_user_position FROM UserPosition) > (SELECT max_rup - 2 FROM MaxPosition)
-                   AND RUOC.ranked_user_position >= (SELECT max_rup - 3 FROM MaxPosition)
-                 UNION
-                 /* less or equal 7 users */
-                 SELECT *
-                 FROM RankedUsersMVOfCommunity RUOC WHERE (SELECT max_rup FROM MaxPosition) <= 7
+                 WHERE (RUOC.ranked_user_position <= 3 OR RUOC.ranked_user_position = (SELECT max_rup FROM MaxPosition))
+                    OR ((SELECT ranked_user_position FROM UserPosition) >= 5 AND
+                        (SELECT ranked_user_position FROM UserPosition) <= (SELECT max_rup - 2 FROM MaxPosition)
+                     AND ABS(RUOC.ranked_user_position - (SELECT ranked_user_position FROM UserPosition)) = 1)
+                    OR ((SELECT ranked_user_position FROM UserPosition) <= 4 AND RUOC.ranked_user_position <= 6)
+                    OR ((SELECT ranked_user_position FROM UserPosition) > (SELECT max_rup - 2 FROM MaxPosition)
+                     AND RUOC.ranked_user_position >= (SELECT max_rup - 3 FROM MaxPosition))
+                    OR ((SELECT max_rup FROM MaxPosition) <= 7)
              )
         SELECT DISTINCT on (ranked_user_position)
             PU.username AS f_username,
@@ -257,7 +244,8 @@ BEGIN
         FROM
             PreviewUsers PU
         ORDER BY
-            ranked_user_position;
+            ranked_user_position
+        limit 7;
 END;
 $$
     LANGUAGE plpgsql;
