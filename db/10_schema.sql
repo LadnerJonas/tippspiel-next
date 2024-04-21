@@ -120,35 +120,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Create the view for Community Leaderboards for all users
-CREATE OR REPLACE VIEW  CommunityLeaderboard_AllUsers AS
-WITH RankedUsers AS (
-    SELECT
-        CM.community_id,
-        CM.user_id,
-        U.username,
-        CAST(COALESCE(SUM(B.points_earned), 0) AS INT) AS total_score,
-        CAST(RANK() OVER (PARTITION BY CM.community_id ORDER BY COALESCE(SUM(B.points_earned), 0) DESC, U.created_at) AS INT) AS rank
-    FROM
-        CommunityMember CM
-            JOIN
-        "User" U ON CM.user_id = U.id
-            LEFT JOIN
-        Bet B ON CM.user_id = B.user_id
-    GROUP BY
-        CM.community_id,
-        CM.user_id,
-        U.username,
-        U.created_at
-)
-SELECT
-    RU.community_id,
-    RU.user_id,
-    RU.username,
-    RU.total_score,
-    RU.rank
-FROM
-    RankedUsers RU;
 
 CREATE MATERIALIZED VIEW RankedUsersMV AS
 SELECT
@@ -163,10 +134,19 @@ FROM
         JOIN
     "User" U ON CM.user_id = U.id
         LEFT JOIN
-    UserTotalPoints UT ON CM.user_id = UT.user_id;
+    UserTotalPoints UT ON CM.user_id = UT.user_id
+ORDER BY ranked_user_position;
 
 -- Create an index on RankedUsersMV for better performance
-CREATE INDEX idx_ranked_users_mv_user_id ON RankedUsersMV(user_id);
+CREATE INDEX idx_ranked_users_mv_user_id ON RankedUsersMV(user_id,ranked_user_position);
+
+CREATE OR REPLACE VIEW CommunityLeaderboard_AllUsers AS
+SELECT
+    RU.username,
+    RU.total_points,
+    RU.rank
+FROM
+    RankedUsersMV RU;
 
 -- Create a trigger to refresh the materialized view on changes to UserTotalPoints
 CREATE OR REPLACE FUNCTION refresh_ranked_users_mv()
