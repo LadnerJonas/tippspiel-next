@@ -1,23 +1,25 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import prisma from '../../lib/prisma';
+import {Game} from "../../types/prismaTypes";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-    const { id } = req.query;
+    const id = req.query.id;
 
     if (!id) {
-        const games = await prisma.game.findMany({
+        const games : Game[] = await prisma.game.findMany({
             orderBy: {
                 start_time: 'asc',
             }
         });
         res.status(200).json(games);
+        return;
     }
 
     const gameId = parseInt(id as string);
 
     if (req.method === 'GET') {
         try {
-            const game = await prisma.game.findUnique({
+            const game: Game | null = await prisma.game.findUnique({
                 where: {
                     id: gameId,
                 },

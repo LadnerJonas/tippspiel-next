@@ -11,7 +11,9 @@
   "dependencies": {
     "@nextui-org/react": "^2.3.5",
     "@prisma/client": "5.12.1",
+    "@types/cookie": "^0.6.0",
     "autoprefixer": "^10.4.19",
+    "cookie": "^0.6.0",
     "cookies-next": "^4.1.1",
     "framer-motion": "^11.1.7",
     "iron-session": "^8.0.1",
