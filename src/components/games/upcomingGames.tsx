@@ -33,6 +33,8 @@ export default function Games() {
         {key: 'away_team', label: 'Away Team'},
         {key: 'start_time', label: 'Start Time'},
         {key: 'end_time', label: 'End Time'},
+        {key: 'home_score', label: 'Home Score'},
+        {key: 'away_score', label: 'Away Score'},
     ];
 
 
@@ -52,6 +54,8 @@ export default function Games() {
                     hour: '2-digit',
                     minute: '2-digit'
                 })}`,
+                home_score: game.home_score ?? '-',
+                away_score: game.away_score ?? '-',
             };
         });
         const start = (page - 1) * rowsPerPage;
