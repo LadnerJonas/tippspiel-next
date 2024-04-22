@@ -1,5 +1,5 @@
 import {cookies} from "next/headers";
-import {User} from "./types/prismaTypes";
+import {User} from "../types/prismaTypes";
 
 export default function getUserFromSession(): User | undefined {
     const cookie = cookies().get('session');

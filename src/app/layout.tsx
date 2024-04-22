@@ -3,7 +3,7 @@ import '../styles/global.css'
 
 import {NextUIProvider} from "@nextui-org/react";
 import React from "react";
-import getUserFromSession from "../UserSessionHelper";
+import getUserFromSession from "../helper/UserSessionHelper";
 
 export default function RootLayout({
                                        children,
