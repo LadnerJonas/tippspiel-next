@@ -10,23 +10,46 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             console.error('Error fetching communities:', error);
             res.status(500).json({error: 'Internal Server Error'});
         }
-    } else if (req.method === 'PUT') {
-        const {id, name} = req.body;
+    } else if (req.method === 'POST') {
+        const { communityName , username} = req.body;
+
         try {
-            const updatedCommunity = await prisma.community.update({
+            const user = await prisma.user.findUnique({
                 where: {
-                    id: id,
+                    username: username,
                 },
-                data: {
-                    name: name,
+                include: {
+                    communitymember: true,
                 },
             });
-            res.status(200).json(updatedCommunity);
+
+            if (!user) {
+                res.status(404).json({error: 'User not found'});
+                return;
+            }
+
+            if (user.communitymember.length >= 6) {
+                res.status(400).json({error: 'User is already part of 6 communities'});
+                return;
+            }
+
+            const newCommunity = await prisma.community.create({
+                data: {
+                    name: communityName,
+                    communitymember: {
+                        create: {
+                            user_id: user.id,
+                        },
+                    },
+                },
+            });
+
+            res.status(201).json(newCommunity);
         } catch (error) {
-            console.error('Error updating community:', error);
+            console.error('Error creating community:', error);
             res.status(500).json({error: 'Internal Server Error'});
         }
-    } else if (req.method === 'DELETE') {
+    }else if (req.method === 'DELETE') {
         const {id} = req.body;
         try {
             await prisma.community.delete({

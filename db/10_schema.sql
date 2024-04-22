@@ -167,8 +167,12 @@ BEGIN
 END; $$
     LANGUAGE plpgsql;
 
-CREATE TRIGGER update_user_total_points_trigger
+CREATE TRIGGER update_user_total_points_Bet_trigger
     AFTER UPDATE OF points_earned ON Bet
+EXECUTE FUNCTION refresh_ranked_users_mv();
+
+CREATE TRIGGER update_user_total_points_Bet_trigger
+    AFTER INSERT OR UPDATE ON CommunityMember
 EXECUTE FUNCTION refresh_ranked_users_mv();
 
 -- Create a function to generate the sneak preview of Community Leaderboards
@@ -236,7 +240,7 @@ $$
 CREATE INDEX idx_user_id_username ON "User"(id, username);
 
 -- Create index on CommunityMember.user_id
-CREATE INDEX idx_community_member_user_id ON CommunityMember(user_id);
+CREATE INDEX idx_community_member_user_id ON CommunityMember(community_id,user_id);
 
 -- Create index on Bet.user_id
 CREATE INDEX idx_bet_user_id ON Bet(user_id);

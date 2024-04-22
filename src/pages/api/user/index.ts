@@ -28,7 +28,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                         username: username,
                     },
                 });
-                prisma.communitymember.create({
+                await prisma.communitymember.create({
                     data: {
                         user_id: user.id,
                         community_id: 0
