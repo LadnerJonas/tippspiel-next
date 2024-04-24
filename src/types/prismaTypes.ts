@@ -16,3 +16,12 @@ export type SneakPreviewOfCommunityRow = {
     f_username: string,
     f_total_points: number
 }
+
+export type Bet = {
+    id: number | undefined
+    user_id: number,
+    game_id: number,
+    home_team_goals: number | undefined,
+    away_team_goals: number | undefined,
+    points_earned: number | undefined
+}

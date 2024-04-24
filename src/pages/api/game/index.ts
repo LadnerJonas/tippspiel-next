@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import prisma from '../../lib/prisma';
-import {Game} from "../../types/prismaTypes";
+import prisma from '../../../lib/prisma';
+import {Game} from "../../../types/prismaTypes";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     const id = req.query.id;
