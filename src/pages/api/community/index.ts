@@ -4,7 +4,7 @@ import prisma from '../../../lib/prisma';
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method === 'GET') {
         try {
-            const communities = await prisma.community.findMany({where: {name: {contains: req.query.name as string}}});
+            const communities = await prisma.community.findMany();
             res.status(200).json(communities);
         } catch (error) {
             console.error('Error fetching communities:', error);

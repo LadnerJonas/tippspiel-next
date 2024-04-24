@@ -5,7 +5,7 @@ import Link from "next/link";
 import {Input} from "@nextui-org/react";
 import {useState} from "react";
 
-export function AllCommunities({communities}: { communities: Community[] }) {
+export function SearchCommunities({communities, isAllCommunities}: { communities: Community[], isAllCommunities: boolean }) {
 
     const [communityNameFilter, setCommunityNameFilter] = useState("")
 
@@ -15,14 +15,15 @@ export function AllCommunities({communities}: { communities: Community[] }) {
         <div>
             <h1>Communities</h1>
             <Input type="" value={communityNameFilter}
-                   onValueChange={setCommunityNameFilter} label="Search for your Community"/>
+                   onValueChange={setCommunityNameFilter}
+                   label={isAllCommunities ? "Search in all communities" : "Search in your communities"}/>
             <div style={{display: 'flex', flexWrap: 'wrap', width: "50vw"}}>
                 {communities.filter(community =>
                     community.name.toLowerCase().indexOf(communityNameFilter.toLowerCase()) !== -1).slice(0, elements)
                     .map((community) => (
-                    <Card>
+                    <Card key={community.id}>
                         <CardBody>
-                            <Link key={community.id} href={`/community/${community.id}`}>
+                            <Link  href={`/community/${community.id}`}>
                                 {community.name}
                             </Link>
                         </CardBody>
@@ -30,7 +31,7 @@ export function AllCommunities({communities}: { communities: Community[] }) {
                 }
                 {communities.filter(community =>
                     community.name.toLowerCase().indexOf(communityNameFilter.toLowerCase()) !== -1).length > elements &&
-                    (<Card>
+                    (<Card key={-1}>
                         <CardBody>
                             ...
                         </CardBody>
