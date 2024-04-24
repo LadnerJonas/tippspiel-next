@@ -5,6 +5,8 @@ DROP TABLE IF EXISTS PinnedUser CASCADE;
 DROP TABLE IF EXISTS Game CASCADE;
 DROP TABLE IF EXISTS "User" CASCADE;
 
+SET TIMEZONE='Europe/Berlin';
+
 -- Create the "User" table
 CREATE TABLE "User" (
                         id SERIAL PRIMARY KEY,

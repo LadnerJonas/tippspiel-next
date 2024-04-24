@@ -13,6 +13,7 @@ import {
 } from "@nextui-org/react";
 import Link from "next/link";
 import {Game} from "../../types/prismaTypes";
+import {toZonedTime} from "date-fns-tz";
 
 export default function GamesTable({games}:{ games: Game[] }) {
     const [page, setPage] = useState(1);
@@ -31,15 +32,21 @@ export default function GamesTable({games}:{ games: Game[] }) {
 
     const items = useMemo(() => {
         const potentialRows = games.map(game => {
+            const utc = 'UTC';
+
             const startTime = new Date(game.start_time);
             const endTime = new Date(game.end_time);
+
+            const zonedStartTime = toZonedTime(startTime, utc);
+            const zonedEndTime = toZonedTime(endTime, utc);
+
             return {
                 ...game,
-                start_time: `${startTime.toLocaleDateString('de-DE')} ${startTime.toLocaleTimeString('de-DE', {
+                start_time: `${zonedStartTime.toLocaleDateString('de-DE')} ${zonedStartTime.toLocaleTimeString('de-DE', {
                     hour: '2-digit',
                     minute: '2-digit'
                 })}`,
-                end_time: `${endTime.toLocaleDateString('de-DE')} ${endTime.toLocaleTimeString('de-DE', {
+                end_time: `${zonedEndTime.toLocaleDateString('de-DE')} ${zonedEndTime.toLocaleTimeString('de-DE', {
                     hour: '2-digit',
                     minute: '2-digit'
                 })}`,
@@ -63,7 +70,7 @@ export default function GamesTable({games}:{ games: Game[] }) {
                                    isCompact
                                    showControls
                                    showShadow
-                                   color="secondary"
+                                   color="primary"
                                    page={page}
                                    total={pages}
                                    onChange={(page) => setPage(page)}
@@ -75,7 +82,7 @@ export default function GamesTable({games}:{ games: Game[] }) {
                     <TableBody items={items}>
                         {(item) => (
                             <TableRow key={item.id}>
-                                {(columnKey) => <TableCell><Link suppressHydrationWarning
+                                {(columnKey) => <TableCell><Link
                                     href={`/bet/game/${item.id}`}>{getKeyValue(item, columnKey)}</Link></TableCell>}
                             </TableRow>
                         )}

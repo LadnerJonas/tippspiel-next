@@ -39,6 +39,9 @@ RUN npm install -g pnpm
 # Set working directory
 WORKDIR /app
 
+# Set timezone to Germany
+RUN ln -snf /usr/share/zoneinfo/Europe/Berlin /etc/localtime && echo Europe/Berlin > /etc/timezone
+
 # Copy from build stage
 COPY --from=build /app ./
 

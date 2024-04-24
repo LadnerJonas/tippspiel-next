@@ -19,7 +19,8 @@ export default async function () {
                 <div style={{"position": "relative"}}><SearchCommunities communities={allCommunities}
                                                                          isAllCommunities={true}/></div>
                 <br/>
-                <div style={{"position": "relative"}}><CreateNewCommunity user={user}/></div>
+                {allCommunitiesOfUser.length > 0 &&
+                <div style={{"position": "relative"}}><CreateNewCommunity user={user}/></div>}
 
             </div>
 
