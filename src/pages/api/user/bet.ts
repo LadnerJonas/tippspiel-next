@@ -3,9 +3,9 @@ import prisma from "../../../lib/prisma";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method === 'GET') {
-        const username = req.query.username as string;
+        const userId = req.query.user_id;
 
-        if (!username) {
+        if (!userId) {
             return res.status(400).json({error: 'User ID is required'});
         }
 
@@ -13,10 +13,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             // Get user details along with associated bets
             const user = await prisma.user.findUnique({
                 where: {
-                    username: username,
+                    id: Number(userId)
                 },
                 include: {
-                    bet: true, // Include associated bets
+                    bet: {include: {game: true}},
+
                 },
             });
 

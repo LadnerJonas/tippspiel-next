@@ -62,7 +62,7 @@ const BetForm: React.FC<BetFormProps> = ({ game,bet }) => {
                 placeholder="Away team goals"
                 label={"Away team goals"}
             />
-            <Button onClick={handleUpdateBet}>Update Bet</Button>
+            <Button size="lg" color="primary" onClick={handleUpdateBet}>Update Bet</Button>
         </div>
     );
 };
