@@ -6,9 +6,7 @@ import {Input} from "@nextui-org/react";
 import {useState} from "react";
 
 export function SearchCommunities({communities, isAllCommunities}: { communities: Community[], isAllCommunities: boolean }) {
-
     const [communityNameFilter, setCommunityNameFilter] = useState("")
-
 
     const elements = 15;
     return (
@@ -23,7 +21,7 @@ export function SearchCommunities({communities, isAllCommunities}: { communities
                     .map((community) => (
                     <Card key={community.id}>
                         <CardBody>
-                            <Link  href={`/community/${community.id}`}>
+                            <Link href={`/community/${community.id}`}>
                                 {community.name}
                             </Link>
                         </CardBody>
