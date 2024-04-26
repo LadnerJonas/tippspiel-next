@@ -1,0 +1,42 @@
+> ab -n 15000 -c 10 http://localhost:5173/api/community/sneakPreviewOfLeaderBoard\?community_id\=0\&user_id\=1
+This is ApacheBench, Version 2.3 <$Revision: 1913912 $>
+Copyright 1996 Adam Twiss, Zeus Technology Ltd, http://www.zeustech.net/
+Licensed to The Apache Software Foundation, http://www.apache.org/
+
+Benchmarking localhost (be patient)
+
+Server Software:        
+Server Hostname:        localhost
+Server Port:            5173
+
+Document Path:          /api/community/sneakPreviewOfLeaderBoard?community_id=0&user_id=1
+Document Length:        587 bytes
+
+Concurrency Level:      10
+Time taken for tests:   123.322 seconds (canceled)
+Complete requests:      1399
+Failed requests:        0
+Total transferred:      1084225 bytes
+HTML transferred:       821213 bytes
+Requests per second:    11.34 [#/sec] (mean)
+Time per request:       881.502 [ms] (mean)
+Time per request:       88.150 [ms] (mean, across all concurrent requests)
+Transfer rate:          8.59 [Kbytes/sec] received
+
+Connection Times (ms)
+              min  mean[+/-sd] median   max
+Connect:        0    0   0.1      0       1
+Processing:   587  873 202.3    765    1434
+Waiting:      587  872 202.2    765    1434
+Total:        588  873 202.3    765    1434
+
+Percentage of the requests served within a certain time (ms)
+  50%    765
+  66%    817
+  75%   1099
+  80%   1141
+  90%   1199
+  95%   1241
+  98%   1266
+  99%   1292
+ 100%   1434 (longest request)
