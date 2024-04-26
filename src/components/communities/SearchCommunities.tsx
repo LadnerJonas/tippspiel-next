@@ -21,9 +21,10 @@ export function SearchCommunities({communities, isAllCommunities}: { communities
                     .map((community) => (
                     <Card key={community.id}>
                         <CardBody>
-                            <Link href={`/community/${community.id}`}>
-                                {community.name}
-                            </Link>
+                            {community.id == 0 ? community.name :
+                                <Link href={`/community/${community.id}`}>
+                                    {community.name}
+                                </Link>}
                         </CardBody>
                     </Card>))
                 }
