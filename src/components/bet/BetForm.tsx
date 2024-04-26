@@ -1,21 +1,23 @@
 'use client'
-import React, { useState, useEffect } from 'react'
-import { Input, Button } from '@nextui-org/react';
+import React, {useState, useEffect} from 'react'
+import {Input, Button} from '@nextui-org/react';
 import {Bet, Game} from "../../types/prismaTypes";
 import GamesTable from "../games/gamesTable";
+import {useRouter} from "next/navigation";
 
 type BetFormProps = {
     game: Game;
     bet: Bet;
 };
 
-const BetForm: React.FC<BetFormProps> = ({ game,bet }) => {
+const BetForm: React.FC<BetFormProps> = ({game, bet}) => {
+    const router = useRouter();
     const [homeTeamGoals, setHomeTeamGoals] = useState<number>(bet?.home_team_goals ? bet.home_team_goals! : 0);
     const [awayTeamGoals, setAwayTeamGoals] = useState<number>(bet?.away_team_goals ? bet.away_team_goals! : 0);
 
     useEffect(() => {
-        setHomeTeamGoals(bet?.home_team_goals  ? bet.home_team_goals! : 0);
-        setAwayTeamGoals(bet?.away_team_goals  ? bet.away_team_goals! : 0);
+        setHomeTeamGoals(bet?.home_team_goals ? bet.home_team_goals! : 0);
+        setAwayTeamGoals(bet?.away_team_goals ? bet.away_team_goals! : 0);
     }, [bet]);
 
     const handleUpdateBet = async () => {
@@ -27,8 +29,8 @@ const BetForm: React.FC<BetFormProps> = ({ game,bet }) => {
                 },
                 body: JSON.stringify({
                     id: bet.id,
-                    user_id : bet.user_id,
-                    game_id : bet.game_id as number,
+                    user_id: bet.user_id,
+                    game_id: bet.game_id as number,
                     home_team_goals: homeTeamGoals,
                     away_team_goals: awayTeamGoals,
                 }),
@@ -39,15 +41,41 @@ const BetForm: React.FC<BetFormProps> = ({ game,bet }) => {
             }
 
             const updatedBet = await response.json();
+            router.push("/bet/" + updatedBet.id)
             console.log('Updated bet:', updatedBet);
         } catch (error) {
             console.error('Error:', error);
         }
     };
 
+    const handleDeleteBet = async () => {
+        try {
+            const response = await fetch(`/api/bet/`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    id: bet.id,
+                }),
+            });
+
+            if (!response.ok) {
+                throw new Error('Error deleting bet');
+            }
+
+            console.log("response: ", response.ok)
+            if (response.ok) {
+                router.push("/bet")
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            <GamesTable games={[game]} />
+        <div style={{display: 'flex', flexDirection: 'column', gap: '1rem'}}>
+            <GamesTable games={[game]}/>
             <Input
                 type="number"
                 value={homeTeamGoals.toString()}
@@ -62,7 +90,15 @@ const BetForm: React.FC<BetFormProps> = ({ game,bet }) => {
                 placeholder="Away team goals"
                 label={"Away team goals"}
             />
-            <Button size="lg" color="primary" onClick={handleUpdateBet}>Update Bet</Button>
+            {bet.id ?
+                (<>
+                        <Button size="lg" color="primary" onClick={handleUpdateBet}>Update Bet</Button>
+                        <Button size="lg" color="danger" onClick={handleDeleteBet}>Delete Bet</Button></>
+                )
+                : (
+                    <><Button size="lg" color="primary" onClick={handleUpdateBet}>Create Bet</Button></>
+                )
+            }
         </div>
     );
 };

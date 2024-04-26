@@ -19,7 +19,6 @@ export default async function ExistingBetPage({params}: { params: { id: number }
             away_team_goals: 0,
             points_earned: undefined
         }
-        console.log(bet)
     }else{
         bet = await betResponse.json() as Bet;
     }

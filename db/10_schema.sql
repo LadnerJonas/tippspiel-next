@@ -23,15 +23,14 @@ CREATE TABLE PinnedUser (
 -- Create the Community table
 CREATE TABLE Community (
                            id SERIAL PRIMARY KEY,
-                           name VARCHAR(255) NOT NULL,
-                           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                           name VARCHAR(255) NOT NULL
 );
 
 -- Create the CommunityMember table
 CREATE TABLE CommunityMember (
-                                 id SERIAL PRIMARY KEY,
                                  community_id INT REFERENCES Community(id),
-                                 user_id INT REFERENCES "User"(id)
+                                 user_id INT REFERENCES "User"(id),
+                                 PRIMARY KEY (community_id, user_id)
 );
 
 -- Create the Game table
@@ -54,7 +53,8 @@ CREATE TABLE Bet (
                      home_team_goals INT,
                      away_team_goals INT,
                      points_earned INT DEFAULT 0, -- Set default value for points_earned
-                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                     UNIQUE(user_id, game_id)
 );
 
 -- Create a function to calculate and update points_earned in Bet table
