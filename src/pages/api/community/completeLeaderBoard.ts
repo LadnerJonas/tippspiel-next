@@ -1,8 +1,14 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import prisma from '../../../lib/prisma';
+import {CacheInvalidateTime, getCache, setCache} from "../../../helper/apiCacheHelper";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method === 'GET') {
+        const response = getCache(req.url)
+        if (response) {
+            res.status(200).json(response);
+            return;
+        }
         try {
             const communityId = String(req.query.communityId);
             const leaderboard = await prisma.$queryRaw`
@@ -12,9 +18,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           cast("rank" as integer)
         FROM
           communityLeaderboard_AllUsers
-        WHERE community_id = CAST(${communityId} AS INT)
-        limit 1000
+        limit 100
       `;
+            setCache(req.url, leaderboard, CacheInvalidateTime.HOT.valueOf())
             res.status(200).json(leaderboard);
         } catch (error) {
             console.error('Error fetching community leaderboard:', error);
