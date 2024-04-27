@@ -1,5 +1,5 @@
 'use client'
-import {useMemo, useState} from "react";
+import {useCallback, useMemo, useState} from "react";
 import {
     getKeyValue,
     Pagination,
@@ -14,9 +14,14 @@ import {
 import Link from "next/link";
 import {Game} from "../../types/prismaTypes";
 import {toZonedTime} from "date-fns-tz";
+import {getAllUpcomingGames} from "../../helper/GameFetcher";
+import {useWebSocket, WebSocketProvider} from "next-ws/client";
 
-export default function GamesTable({games, href}:{ games: Game[],  href : string}) {
+export default function GamesTable({initialGames, href}:{ initialGames: Game[],  href : string}) {
+    const ws = useWebSocket();
+
     const [page, setPage] = useState(1);
+    const [games, setGames] = useState<Game[]>(initialGames);
 
     const columns = [
         {key: 'home_team', label: 'Home Team'},
@@ -60,8 +65,24 @@ export default function GamesTable({games, href}:{ games: Game[],  href : string
         return potentialRows.slice(start, end);
     }, [page, games]);
 
+    async function fetchData(){
+        console.log("fetching data")
+        setGames(await getAllUpcomingGames());
+    }
+
+    const onMessage = useCallback(
+        async (event: MessageEvent<Blob>) => {
+            await fetchData();
+        },
+        [],
+    );
+
+    ws?.addEventListener('message', onMessage);
+
+    console.log(ws)
     return (
         <div>
+            <WebSocketProvider url={`ws://localhost:5173/ws`}>
             <Skeleton isLoaded={games.length > 0}>
                 <Table aria-label={"games"}
                        bottomContent={
@@ -91,6 +112,7 @@ export default function GamesTable({games, href}:{ games: Game[],  href : string
 
                 </Table>
             </Skeleton>
+            </WebSocketProvider>
         </div>
     );
 }

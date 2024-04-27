@@ -4,6 +4,7 @@ import '../styles/global.css'
 import {NextUIProvider} from "@nextui-org/react";
 import React from "react";
 import getUserFromSession from "../helper/UserSessionHelper";
+import {WebSocketProvider} from "next-ws/client";
 
 export default function RootLayout({
                                        children,
@@ -20,9 +21,11 @@ export default function RootLayout({
         </head>
         <body>
         <NextUIProvider>
-            <Header user={user}/>
-            <div style={{margin: 10,  display: "flex", justifyContent: "center",
-                alignItems: "center"}}>{children}</div>
+                <Header user={user}/>
+                <div style={{
+                    margin: 10, display: "flex", justifyContent: "center",
+                    alignItems: "center"
+                }}>{children}</div>
         </NextUIProvider>
         </body>
         </html>

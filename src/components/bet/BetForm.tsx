@@ -93,7 +93,7 @@ const BetForm: React.FC<BetFormProps> = ({game, bet}) => {
     return (
         <div style={{display: 'flex', flexDirection: 'column', gap: '1rem'}}>
             <ToastContainer theme="dark"/>
-            <GamesTable games={[game]} href={`bet/game/${game.id}`}/>
+            <GamesTable initialGames={[game]} href={`bet/game/${game.id}`}/>
             <Input
                 type="number"
                 value={homeTeamGoals.toString()}

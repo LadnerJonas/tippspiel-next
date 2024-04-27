@@ -1,3 +1,4 @@
+require('next-ws/server').verifyPatch();
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     typescript: {
@@ -8,7 +9,7 @@ const nextConfig = {
         ignoreBuildErrors: true,
     },
     experimental: {
-        serverActions: true,
+        //serverActions: true,
     },
 }
 

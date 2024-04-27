@@ -1,3 +1,4 @@
+'use client'
 import UpcomingGames from "../../components/games/upcomingGames";
 
 export default function Page() {

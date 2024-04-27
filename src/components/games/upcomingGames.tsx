@@ -1,14 +1,16 @@
+'use client'
 import {Game} from "../../types/prismaTypes";
-import React from "react";
-import GamesTable from "./gamesTable";
+import {getAllUpcomingGames} from "../../helper/GameFetcher";
+import GamesTableWrapper from "./GamesTableWrapper";
+
 
 export default async function Games({href}: { href: string }) {
-    const games: Game[] = await fetch(`http://${process.env.SERVER_ADDRESS}/api/game`).then(res => res.json());
+    const games: Game[] = await getAllUpcomingGames();
 
     return (
         <div>
             <p className="text-3xl font-bold">Upcoming games</p>
-            <GamesTable games={games} href={href}/>
+            <GamesTableWrapper initialGames={games} href={href}/>
         </div>
     )
 }

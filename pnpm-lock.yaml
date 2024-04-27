@@ -9,8 +9,8 @@ dependencies:
     specifier: ^2.3.6
     version: 2.3.6(@types/react@18.2.77)(framer-motion@11.1.7)(react-dom@18.2.0)(react@18.2.0)(tailwind-variants@0.2.1)(tailwindcss@3.4.3)
   '@prisma/client':
-    specifier: 5.12.1
-    version: 5.12.1(prisma@5.13.0)
+    specifier: 5.13.0
+    version: 5.13.0(prisma@5.13.0)
   '@types/cookie':
     specifier: ^0.6.0
     version: 0.6.0
@@ -38,6 +38,9 @@ dependencies:
   next:
     specifier: 13.5.6
     version: 13.5.6(react-dom@18.2.0)(react@18.2.0)
+  next-ws:
+    specifier: ^1.0.1
+    version: 1.0.1(next@13.5.6)(react@18.2.0)(ws@8.16.0)
   postcss:
     specifier: ^8.4.38
     version: 8.4.38
@@ -56,9 +59,12 @@ dependencies:
   supports-color:
     specifier: 9.4.0
     version: 9.4.0
+  utf-8-validate:
+    specifier: ^6.0.3
+    version: 6.0.3
   ws:
     specifier: ^8.16.0
-    version: 8.16.0(bufferutil@4.0.8)
+    version: 8.16.0(bufferutil@4.0.8)(utf-8-validate@6.0.3)
 
 optionalDependencies:
   bufferutil:
@@ -1725,8 +1731,8 @@ packages:
     requiresBuild: true
     optional: true
 
-  /@prisma/client@5.12.1(prisma@5.13.0):
-    resolution: {integrity: sha512-6/JnizEdlSBxDIdiLbrBdMW5NqDxOmhXAJaNXiPpgzAPr/nLZResT6MMpbOHLo5yAbQ1Vv5UU8PTPRzb0WIxdA==}
+  /@prisma/client@5.13.0(prisma@5.13.0):
+    resolution: {integrity: sha512-uYdfpPncbZ/syJyiYBwGZS8Gt1PTNoErNYMuqHDa2r30rNSFtgTA/LXsSk55R7pdRTMi5pHkeP9B14K6nHmwkg==}
     engines: {node: '>=16.13'}
     requiresBuild: true
     peerDependencies:
@@ -3868,6 +3874,18 @@ packages:
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
     hasBin: true
 
+  /next-ws@1.0.1(next@13.5.6)(react@18.2.0)(ws@8.16.0):
+    resolution: {integrity: sha512-OIxASK7gU17y4J84FRnLA0kSAj5sDpC2DPgtiNQCevNbf3GXk7AOuqY+6kwcw2iVG5aDOoxT8TLsNRtHb+/Znw==}
+    peerDependencies:
+      next: '>=13.1.1'
+      react: '*'
+      ws: '*'
+    dependencies:
+      next: 13.5.6(react-dom@18.2.0)(react@18.2.0)
+      react: 18.2.0
+      ws: 8.16.0(bufferutil@4.0.8)(utf-8-validate@6.0.3)
+    dev: false
+
   /next@13.5.6(react-dom@18.2.0)(react@18.2.0):
     resolution: {integrity: sha512-Y2wTcTbO4WwEsVb4A8VSnOsG1I9ok+h74q0ZdxkwM3EODqrs4pasq7O0iUxbcS9VtWMicG7f3+HAj0r1+NtKSw==}
     engines: {node: '>=16.14.0'}
@@ -4621,6 +4639,14 @@ packages:
       tslib: 2.6.2
     dev: false
 
+  /utf-8-validate@6.0.3:
+    resolution: {integrity: sha512-uIuGf9TWQ/y+0Lp+KGZCMuJWc3N9BHA+l/UmHd/oUHwJJDeysyTRxNQVkbzsIWfGFbRe3OcgML/i0mvVRPOyDA==}
+    engines: {node: '>=6.14.2'}
+    requiresBuild: true
+    dependencies:
+      node-gyp-build: 4.8.0
+    dev: false
+
   /util-deprecate@1.0.2:
     resolution: {integrity: sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw==}
 
@@ -4673,7 +4699,7 @@ packages:
       string-width: 5.1.2
       strip-ansi: 7.1.0
 
-  /ws@8.16.0(bufferutil@4.0.8):
+  /ws@8.16.0(bufferutil@4.0.8)(utf-8-validate@6.0.3):
     resolution: {integrity: sha512-HS0c//TP7Ina87TfiPUz1rQzMhHrl/SG2guqRcTOIUYD2q8uhUdNHZYJUaQ8aTGPzCh+c6oawMKW35nFl1dxyQ==}
     engines: {node: '>=10.0.0'}
     peerDependencies:
@@ -4686,6 +4712,7 @@ packages:
         optional: true
     dependencies:
       bufferutil: 4.0.8
+      utf-8-validate: 6.0.3
     dev: false
 
   /yaml@2.4.1:

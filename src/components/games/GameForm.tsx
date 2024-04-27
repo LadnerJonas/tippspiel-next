@@ -6,12 +6,16 @@ import GamesTable from "../games/gamesTable";
 import ToastComponent from "../common/ToastComponent";
 import {ToastContainer} from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
+import {notifyClients} from "../../pages/api/old-websocket";
+import {useWebSocket, WebSocketProvider} from "next-ws/client";
 
 type GameFormProps = {
     game: Game;
 };
 
 const GameForm: React.FC<GameFormProps> = ({game}) => {
+    const ws = useWebSocket();
+
     const [homeTeamGoals, setHomeTeamGoals] = useState<number>(game?.home_score ? game.home_score! : 0);
     const [awayTeamGoals, setAwayTeamGoals] = useState<number>(game?.away_score ? game.away_score! : 0);
     const [endTime, setEndTime] = useState<string>(game?.end_time ? new Date(game.end_time).toISOString() : new Date().toISOString());
@@ -43,6 +47,8 @@ const GameForm: React.FC<GameFormProps> = ({game}) => {
                 throw new Error('Error updating game');
             }
             ToastComponent({message: 'Game updated successfully!', type: 'success'});
+            ws?.send("Game updated");
+            console.log("send")
         } catch (error) {
             ToastComponent({message: `Error updating game: ${error.message}`, type: 'error'});
             console.error('Error:', error);
@@ -55,7 +61,7 @@ const GameForm: React.FC<GameFormProps> = ({game}) => {
     return (
         <div style={{display: 'flex', flexDirection: 'column', gap: '1rem'}}>
             <ToastContainer theme="dark"/>
-            <GamesTable games={[game]} href={`/admin/game/${game.id}`}/>
+            <GamesTable initialGames={[game]} href={`/admin/game/${game.id}`}/>
             <Input
                 type="number"
                 value={homeTeamGoals.toString()}
@@ -84,7 +90,6 @@ const GameForm: React.FC<GameFormProps> = ({game}) => {
                 hidden={!loading}
             />}
             <Button size="lg" color="primary" onClick={handleUpdateGame} disabled={loading}>Update Game</Button>
-
         </div>
     );
 };
