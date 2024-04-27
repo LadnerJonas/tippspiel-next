@@ -1,19 +1,21 @@
 'use client'
-import React, {useState, useEffect} from 'react'
-import {Input, Button, DatePicker} from '@nextui-org/react';
+import React, {useEffect, useState} from 'react'
+import {Button, Input, Progress} from '@nextui-org/react';
 import {Game} from "../../types/prismaTypes";
 import GamesTable from "../games/gamesTable";
-import {useRouter} from "next/navigation";
+import ToastComponent from "../common/ToastComponent";
+import {ToastContainer} from "react-toastify";
+import 'react-toastify/dist/ReactToastify.css';
 
 type GameFormProps = {
     game: Game;
 };
 
 const GameForm: React.FC<GameFormProps> = ({game}) => {
-    const router = useRouter();
     const [homeTeamGoals, setHomeTeamGoals] = useState<number>(game?.home_score ? game.home_score! : 0);
     const [awayTeamGoals, setAwayTeamGoals] = useState<number>(game?.away_score ? game.away_score! : 0);
     const [endTime, setEndTime] = useState<string>(game?.end_time ? new Date(game.end_time).toISOString() : new Date().toISOString());
+    const [loading, setLoading] = useState<boolean>(false)
 
     useEffect(() => {
         setHomeTeamGoals(game?.home_score ? game.home_score! : 0);
@@ -22,6 +24,7 @@ const GameForm: React.FC<GameFormProps> = ({game}) => {
     }, [game]);
 
     const handleUpdateGame = async () => {
+        setLoading(true)
         try {
             const response = await fetch(`/api/game/`, {
                 method: 'PUT',
@@ -39,17 +42,19 @@ const GameForm: React.FC<GameFormProps> = ({game}) => {
             if (!response.ok) {
                 throw new Error('Error updating game');
             }
-
-            const updatedGame = await response.json();
-            //router.push("/game/" + updatedGame.id)
-            console.log('Updated game:', updatedGame);
+            ToastComponent({message: 'Game updated successfully!', type: 'success'});
         } catch (error) {
+            ToastComponent({message: `Error updating game: ${error.message}`, type: 'error'});
             console.error('Error:', error);
+        }
+        finally {
+            setLoading(false)
         }
     };
 
     return (
         <div style={{display: 'flex', flexDirection: 'column', gap: '1rem'}}>
+            <ToastContainer theme="dark"/>
             <GamesTable games={[game]} href={`/admin/game/${game.id}`}/>
             <Input
                 type="number"
@@ -72,7 +77,14 @@ const GameForm: React.FC<GameFormProps> = ({game}) => {
                 placeholder="End time"
                 label={"End time"}
             />
-            <Button size="lg" color="primary" onClick={handleUpdateGame}>Update Game</Button>
+            {loading && <Progress
+                size="sm"
+                isIndeterminate
+                aria-label="Loading..."
+                hidden={!loading}
+            />}
+            <Button size="lg" color="primary" onClick={handleUpdateGame} disabled={loading}>Update Game</Button>
+
         </div>
     );
 };

@@ -1,9 +1,13 @@
 'use client'
 import React, {useState, useEffect} from 'react'
-import {Input, Button} from '@nextui-org/react';
+import {Input, Button, Progress} from '@nextui-org/react';
 import {Bet, Game} from "../../types/prismaTypes";
 import GamesTable from "../games/gamesTable";
 import {useRouter} from "next/navigation";
+import {ToastContainer} from "react-toastify";
+import 'react-toastify/dist/ReactToastify.css';
+import {tr} from "date-fns/locale";
+import ToastComponent from "../common/ToastComponent";
 
 type BetFormProps = {
     game: Game;
@@ -14,6 +18,7 @@ const BetForm: React.FC<BetFormProps> = ({game, bet}) => {
     const router = useRouter();
     const [homeTeamGoals, setHomeTeamGoals] = useState<number>(bet?.home_team_goals ? bet.home_team_goals! : 0);
     const [awayTeamGoals, setAwayTeamGoals] = useState<number>(bet?.away_team_goals ? bet.away_team_goals! : 0);
+    const [loading, setLoading] = useState<boolean>(false)
 
     useEffect(() => {
         setHomeTeamGoals(bet?.home_team_goals ? bet.home_team_goals! : 0);
@@ -21,6 +26,7 @@ const BetForm: React.FC<BetFormProps> = ({game, bet}) => {
     }, [bet]);
 
     const handleUpdateBet = async () => {
+        setLoading(true)
         try {
             const response = await fetch(`/api/bet/`, {
                 method: 'PUT',
@@ -41,14 +47,20 @@ const BetForm: React.FC<BetFormProps> = ({game, bet}) => {
             }
 
             const updatedBet = await response.json();
+            ToastComponent({message: 'Bet updated successfully!', type: 'success'});
             router.push("/bet/" + updatedBet.id)
             console.log('Updated bet:', updatedBet);
         } catch (error) {
+            ToastComponent({message: `Error updating bet: ${error.message}`, type: 'error'});
             console.error('Error:', error);
+        }
+        finally {
+            setLoading(false)
         }
     };
 
     const handleDeleteBet = async () => {
+        setLoading(true)
         try {
             const response = await fetch(`/api/bet/`, {
                 method: 'DELETE',
@@ -66,16 +78,22 @@ const BetForm: React.FC<BetFormProps> = ({game, bet}) => {
 
             console.log("response: ", response.ok)
             if (response.ok) {
+                ToastComponent({message: 'Bet deleted successfully!', type: 'success'});
                 router.push("/bet")
             }
         } catch (error) {
+            ToastComponent({message: `Error deleting bet: ${error.message}`, type: 'error'});
             console.error('Error:', error);
+        }
+        finally {
+            setLoading(false)
         }
     }
 
     return (
         <div style={{display: 'flex', flexDirection: 'column', gap: '1rem'}}>
-            <GamesTable games={[game]}/>
+            <ToastContainer theme="dark"/>
+            <GamesTable games={[game]} href={`bet/game/${game.id}`}/>
             <Input
                 type="number"
                 value={homeTeamGoals.toString()}
@@ -90,13 +108,19 @@ const BetForm: React.FC<BetFormProps> = ({game, bet}) => {
                 placeholder="Away team goals"
                 label={"Away team goals"}
             />
+            {loading && <Progress
+                size="sm"
+                isIndeterminate
+                aria-label="Loading..."
+                hidden={!loading}
+            />}
             {bet.id ?
                 (<>
-                        <Button size="lg" color="primary" onClick={handleUpdateBet}>Update Bet</Button>
-                        <Button size="lg" color="danger" onClick={handleDeleteBet}>Delete Bet</Button></>
+                        <Button size="lg" color="primary" onClick={handleUpdateBet} disabled={loading}>Update Bet</Button>
+                        <Button size="lg" color="danger" onClick={handleDeleteBet} disabled={loading}>Delete Bet</Button></>
                 )
                 : (
-                    <><Button size="lg" color="primary" onClick={handleUpdateBet}>Create Bet</Button></>
+                    <><Button size="lg" color="primary" onClick={handleUpdateBet} disabled={loading}>Create Bet</Button></>
                 )
             }
         </div>
