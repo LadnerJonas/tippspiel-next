@@ -15,7 +15,7 @@ import Link from "next/link";
 import {Game} from "../../types/prismaTypes";
 import {toZonedTime} from "date-fns-tz";
 
-export default function GamesTable({games}:{ games: Game[] }) {
+export default function GamesTable({games, href}:{ games: Game[],  href : string}) {
     const [page, setPage] = useState(1);
 
     const columns = [
@@ -83,7 +83,7 @@ export default function GamesTable({games}:{ games: Game[] }) {
                         {(item) => (
                             <TableRow key={item.id}>
                                 {(columnKey) => <TableCell><Link
-                                    href={`/bet/game/${item.id}`}>{getKeyValue(item, columnKey)}</Link></TableCell>}
+                                    href={`${href}${item.id}`}>{getKeyValue(item, columnKey)}</Link></TableCell>}
                             </TableRow>
                         )}
 
