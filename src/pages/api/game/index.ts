@@ -3,21 +3,22 @@ import prisma from '../../../lib/prisma';
 import {Game} from "../../../types/prismaTypes";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-    const id = req.query.id;
 
-    if (!id) {
-        const games : Game[] = await prisma.game.findMany({
-            orderBy: {
-                start_time: 'asc',
-            }
-        });
-        res.status(200).json(games);
-        return;
-    }
-
-    const gameId = parseInt(id as string);
 
     if (req.method === 'GET') {
+        const id = req.query.id;
+
+        if (!id) {
+            const games : Game[] = await prisma.game.findMany({
+                orderBy: {
+                    start_time: 'asc',
+                }
+            });
+            res.status(200).json(games);
+            return;
+        }
+
+        const gameId = parseInt(id as string);
         try {
             const game: Game | null = await prisma.game.findUnique({
                 where: {
@@ -33,6 +34,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             res.status(500).json({ error: 'Internal Server Error' });
         }
     } else if (req.method === 'PUT') {
+        const gameId = req.body.id;
         try {
             const updatedGame = await prisma.game.update({
                 where: {
@@ -48,6 +50,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             res.status(500).json({ error: 'Internal Server Error' });
         }
     } else if (req.method === 'DELETE') {
+        const gameId = req.body.id;
         try {
             await prisma.game.delete({
                 where: {
