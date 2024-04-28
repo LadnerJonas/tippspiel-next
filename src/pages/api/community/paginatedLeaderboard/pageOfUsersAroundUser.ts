@@ -17,8 +17,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
             let leaderboard: unknown;
             if (page > 0){
-                console.log(userPosition)
-                console.log(pageSize * page -1)
                 leaderboard = await prisma.$queryRaw`
                     SELECT ranked_user_position, user_id, rank, username, total_points
                     FROM RankedUsersMV

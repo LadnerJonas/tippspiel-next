@@ -8,8 +8,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const skip = (page) * pageSize;
         const communityId = Number(req.query.communityId);
 
-        console.log("query", req.query)
-        console.log("communityId", communityId)
         try {
             const leaderboard = await prisma.$queryRaw`
                 SELECT ranked_user_position, user_id, rank, username, total_points
