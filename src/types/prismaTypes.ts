@@ -10,13 +10,6 @@ export type Game = {
     away_score: number | null
 
 }
-export type SneakPreviewOfCommunityRow = {
-    f_ranked_user_position: number,
-    f_rank: number,
-    f_username: string,
-    f_total_points: number
-}
-
 export type Bet = {
     id: number | undefined
     user_id: number,
@@ -24,4 +17,17 @@ export type Bet = {
     home_team_goals: number | undefined,
     away_team_goals: number | undefined,
     points_earned: number | undefined
+}
+export type SneakPreviewOfCommunityRow = {
+    f_ranked_user_position: number,
+    f_rank: number,
+    f_username: string,
+    f_total_points: number
+}
+export type FullLeaderboardRow = {
+    ranked_user_position: number,
+    user_id: number,
+    rank: number,
+    username: string,
+    total_points: number
 }

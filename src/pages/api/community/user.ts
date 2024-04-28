@@ -2,6 +2,10 @@ import prisma from "../../../lib/prisma";
 
 export default async function handler(req, res) {
     const { community_id } = req.query;
+    if(Number(community_id) === 0){
+        res.status(200).json({ "community": {name: "Global", id: 0}, "communitymember": [] });
+        return;
+    }
 
     if (req.method === 'GET') {
         // Get all communityInfoAndUsers of a community
