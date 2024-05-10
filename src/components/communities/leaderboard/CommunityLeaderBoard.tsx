@@ -1,6 +1,6 @@
 'use client'
 import {useEffect, useState} from 'react';
-import {FullLeaderboardRow} from "../../../types/prismaTypes";
+import {FullLeaderboardRow, User} from "../../../types/prismaTypes";
 import {
     Button,
     getKeyValue,
@@ -16,18 +16,21 @@ import {
 export default function CommunityLeaderBoard(props: {
     initialLeaderBoardAroundUser: FullLeaderboardRow[],
     initialLeaderBoardTopUsers: FullLeaderboardRow[],
-    user: { username: string },
-    communityId: number
+    user: User | undefined,
+    communityId: number,
+    initialPinnedUsers: FullLeaderboardRow[]
 }) {
     const [topUsers, setTopUsers] = useState<FullLeaderboardRow[]>(props.initialLeaderBoardTopUsers.slice(0, 10));
     const [usersAroundUser, setUsersAroundUser] = useState<FullLeaderboardRow[]>(props.initialLeaderBoardAroundUser.slice(1, 11));
+    const [pinnedUsers, setPinnedUsers] = useState<FullLeaderboardRow[]>(props.initialPinnedUsers);
     const [merged, setMerged] = useState(false);
 
     const columns = [
         {label: "Ranked User Position", key: "ranked_user_position"},
         {label: "Rank", key: "rank"},
         {label: "Username", key: "username"},
-        {label: "Total Points", key: "total_points"}
+        {label: "Total Points", key: "total_points"},
+        props.user && {label: "Total Points", key: "pin"}
     ];
 
     const fetchNextTopUsers = async () => {
@@ -43,43 +46,109 @@ export default function CommunityLeaderBoard(props: {
         setUsersAroundUser([...newUsersAroundUser.slice(1), ...usersAroundUser]);
     };
 
+    const addPinnedUser = async (userId: number) => {
+        if(props.user?.id === undefined) return;
+        const response = await fetch(`http://localhost:5173/api/pinning`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                userId: props.user.id,
+                pinnedUserId: userId
+            }),
+        });
+        const newPinnedUser = await response.json();
+        pinnedUsers.push(newPinnedUser);
+        window.location.reload()
+    };
+
+    const removePinnedUser = async (userId: number) => {
+        if(props.user?.id === undefined) return;
+        await fetch(`http://localhost:5173/api/pinning`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                userId: props.user.id,
+                pinnedUserId: userId
+            }),
+        });
+        setPinnedUsers(pinnedUsers.filter(user => user.pinned_user_id !== userId));
+        window.location.reload()
+    };
+
+    const isPinned = (userId: number) => {
+        return pinnedUsers.some(user => user.pinned_user_id === userId) || userId === props.user?.id
+    };
+
+
     useEffect(() => {
         if (!merged && topUsers[topUsers.length - 1].ranked_user_position >= usersAroundUser[0].ranked_user_position) {
             setMerged(true);
             let temp = usersAroundUser.filter((user) => user.ranked_user_position > topUsers[topUsers.length - 1].ranked_user_position);
             setTopUsers([...topUsers, ...temp]);
         }
-    }, [topUsers, usersAroundUser]);
+    }, [usersAroundUser]);
 
     return (
         <div>
+            {pinnedUsers.length > 0 && (
+                <>
+                    <text> Pinned Users:</text>
+                    <Table aria-label={"CommunityLeaderboardPinnedUsers"}>
+                        <TableHeader columns={columns}>
+                            {(column) => <TableColumn key={column!.key}>{column!.label}</TableColumn>}
+                        </TableHeader>
+                        <TableBody items={pinnedUsers}>
+                            {(item) => {
+                                return (
+                                <TableRow key={item.ranked_user_position}
+                                          style={item.username === props.user?.username ? {backgroundColor: semanticColors.dark.default[100]} : {}}>
+                                    {(columnKey) => columnKey == "pin" ? <TableCell>
+                                        <Button onPress={() => removePinnedUser(item.pinned_user_id)}>Unpin</Button>
+                                    </TableCell> : <TableCell>{getKeyValue(item, columnKey)}</TableCell>}
+
+                                </TableRow>)
+                                }}
+                        </TableBody>
+                    </Table>
+                    <br/>
+                </>
+            )}
+            <text>Community Leaderboard: </text>
             <Table aria-label={"CommunityLeaderboard"}
-                   bottomContent={<Button onClick={fetchNextTopUsers}>⮟</Button>}>
+                   bottomContent={(topUsers.length % 10 == 0 || merged && topUsers.length % 10 == 9) &&
+                       <Button onClick={fetchNextTopUsers}>⮟</Button>}>
                 <TableHeader columns={columns}>
-                    {(column) => <TableColumn key={column.key}>{column.label}</TableColumn>}
+                    {(column) => <TableColumn key={column!.key}>{column!.label}</TableColumn>}
                 </TableHeader>
                 <TableBody items={topUsers}>
                     {(item) => (
                         <TableRow key={item.ranked_user_position}
-                                  style={item.username === props.user.username ? {backgroundColor: semanticColors.dark.default[100]} : {}}>
-                            {(columnKey) => <TableCell>{getKeyValue(item, columnKey)}</TableCell>}
+                                  style={item.username === props.user?.username ? {backgroundColor: semanticColors.dark.default[100]} : {}}>
+                            {(columnKey) => columnKey == "pin" ? <TableCell>
+                                <Button disabled={isPinned(item.user_id)} onClick={() => addPinnedUser(item.user_id)} >Pin</Button>
+                            </TableCell> : <TableCell>{getKeyValue(item, columnKey)}</TableCell>}
                         </TableRow>
                     )}
                 </TableBody>
             </Table>
 
-
             {!merged && (
                 <Table aria-label={"CommunityLeaderboard2"}
                        topContent={<Button onClick={fetchNextUsersAroundUser}>⮝</Button>}>
                     <TableHeader columns={columns}>
-                        {(column) => <TableColumn key={column.key}>{column.label}</TableColumn>}
+                        {(column) => <TableColumn key={column!.key}>{column!.label}</TableColumn>}
                     </TableHeader>
                     <TableBody items={usersAroundUser}>
                         {(item) => (
                             <TableRow key={item.ranked_user_position}
-                                      style={item.username === props.user.username ? {backgroundColor: semanticColors.dark.default[100]} : {}}>
-                                {(columnKey) => <TableCell>{getKeyValue(item, columnKey)}</TableCell>}
+                                      style={item.username === props.user?.username ? {backgroundColor: semanticColors.dark.default[100]} : {}}>
+                                {(columnKey) => columnKey == "pin" ? <TableCell>
+                                    <Button disabled={isPinned(item.user_id)} onClick={() => addPinnedUser(item.user_id)} >Pin</Button>
+                                </TableCell> : <TableCell>{getKeyValue(item, columnKey)}</TableCell>}
                             </TableRow>
                         )}
                     </TableBody>

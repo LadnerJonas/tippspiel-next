@@ -10,8 +10,12 @@ type ManageUsersProps = {
 };
 
 export default function ManageUsers({ communityId, users, setUsers }: ManageUsersProps) {
+    if(communityId === 0) {return <div></div>}
+
     const [userNameToAdd, setUserNameToAdd] = useState('');
     const [userNameToRemove, setUserNameToRemove] = useState('');
+
+
 
     useEffect(() => {
         setUsers(users);
