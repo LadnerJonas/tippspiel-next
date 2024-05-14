@@ -25,13 +25,19 @@ export default function CommunityLeaderBoard(props: {
     const [pinnedUsers, setPinnedUsers] = useState<FullLeaderboardRow[]>(props.initialPinnedUsers);
     const [merged, setMerged] = useState(false);
 
-    const columns = [
+    const columns =  props.user ? [
         {label: "Ranked User Position", key: "ranked_user_position"},
         {label: "Rank", key: "rank"},
         {label: "Username", key: "username"},
         {label: "Total Points", key: "total_points"},
-        props.user && {label: "Total Points", key: "pin"}
-    ];
+         {label: "Pin", key: "pin"}
+    ] : [
+            {label: "Ranked User Position", key: "ranked_user_position"},
+            {label: "Rank", key: "rank"},
+            {label: "Username", key: "username"},
+            {label: "Total Points", key: "total_points"},
+        ]
+    ;
 
     const fetchNextTopUsers = async () => {
         const response = await fetch(`http://localhost:5173/api/community/paginatedLeaderboard/pageOfTopUsers?communityId=${props.communityId}&page=${topUsers.length/10}`);
@@ -54,7 +60,7 @@ export default function CommunityLeaderBoard(props: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                userId: props.user.id,
+                userId: props.user?.id,
                 pinnedUserId: userId
             }),
         });
@@ -71,7 +77,7 @@ export default function CommunityLeaderBoard(props: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                userId: props.user.id,
+                userId: props.user?.id,
                 pinnedUserId: userId
             }),
         });
@@ -85,7 +91,7 @@ export default function CommunityLeaderBoard(props: {
 
 
     useEffect(() => {
-        if (!merged && topUsers[topUsers.length - 1].ranked_user_position >= usersAroundUser[0].ranked_user_position) {
+        if (usersAroundUser.length > 0 && !merged && topUsers[topUsers.length - 1].ranked_user_position >= usersAroundUser[0].ranked_user_position) {
             setMerged(true);
             let temp = usersAroundUser.filter((user) => user.ranked_user_position > topUsers[topUsers.length - 1].ranked_user_position);
             setTopUsers([...topUsers, ...temp]);
@@ -136,7 +142,7 @@ export default function CommunityLeaderBoard(props: {
                 </TableBody>
             </Table>
 
-            {!merged && (
+            {!merged && usersAroundUser.length > 0 && (
                 <Table aria-label={"CommunityLeaderboard2"}
                        topContent={<Button onClick={fetchNextUsersAroundUser}>⮝</Button>}>
                     <TableHeader columns={columns}>
