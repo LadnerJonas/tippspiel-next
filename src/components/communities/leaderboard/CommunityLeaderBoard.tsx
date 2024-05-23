@@ -4,6 +4,7 @@ import {FullLeaderboardRow, User} from "../../../types/prismaTypes";
 import {
     Button,
     getKeyValue,
+    Input,
     semanticColors,
     Table,
     TableBody,
@@ -20,10 +21,16 @@ export default function CommunityLeaderBoard(props: {
     communityId: number,
     initialPinnedUsers: FullLeaderboardRow[]
 }) {
-    const [topUsers, setTopUsers] = useState<FullLeaderboardRow[]>(props.initialLeaderBoardTopUsers.slice(0, 10));
-    const [usersAroundUser, setUsersAroundUser] = useState<FullLeaderboardRow[]>(props.initialLeaderBoardAroundUser.slice(1, 11));
     const [pinnedUsers, setPinnedUsers] = useState<FullLeaderboardRow[]>(props.initialPinnedUsers);
+
+    const [topUsers, setTopUsers] = useState<FullLeaderboardRow[]>(props?.initialLeaderBoardTopUsers?.slice(0, 10));
+    const [usersAroundUser, setUsersAroundUser] = useState<FullLeaderboardRow[]>(props.initialLeaderBoardAroundUser.slice(1, 11));
     const [merged, setMerged] = useState(false);
+
+    const [searchTerm, setSearchTerm] = useState('');
+    const [lastSearchTerm, setLastSearchTerm] = useState('');
+    const [searchResults, setSearchResults] = useState<FullLeaderboardRow[]>([]);
+    const [hasMoreResults, setHasMoreResults] = useState(false);
 
     const columns =  props.user ? [
         {label: "Ranked User Position", key: "ranked_user_position"},
@@ -38,6 +45,20 @@ export default function CommunityLeaderBoard(props: {
             {label: "Total Points", key: "total_points"},
         ]
     ;
+
+    const fetchSearchResults = async () => {
+        const response = await fetch(`http://localhost:5173/api/community/paginatedLeaderboard/searchAfterUser?communityId=${props.communityId}&searchTerm=${searchTerm}&page=${searchResults.length/5}`);
+        const newSearchResults = await response.json();
+
+        setHasMoreResults(newSearchResults.length > 5);
+        if(searchTerm !== lastSearchTerm){
+            setSearchResults([...newSearchResults.slice(0, 5)]);
+
+        }else{
+            setSearchResults([...searchResults, ...newSearchResults.slice(0, 5)]);
+        }
+        setLastSearchTerm(searchTerm)
+      };
 
     const fetchNextTopUsers = async () => {
         const response = await fetch(`http://localhost:5173/api/community/paginatedLeaderboard/pageOfTopUsers?communityId=${props.communityId}&page=${topUsers.length/10}`);
@@ -100,6 +121,29 @@ export default function CommunityLeaderBoard(props: {
 
     return (
         <div>
+            <Input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder="Search users..." />
+            <Button onClick={fetchSearchResults}>Search</Button>
+
+            {searchResults.length > 0 && (
+                <Table aria-label={"CommunityLeaderboardSearchResults"}>
+                    <TableHeader columns={columns}>
+                        {(column) => <TableColumn key={column!.key}>{column!.label}</TableColumn>}
+                    </TableHeader>
+                    <TableBody items={searchResults}>
+                        {(item) => (
+                            <TableRow key={item.ranked_user_position}>
+                                {(columnKey) => columnKey == "pin" ? <TableCell>
+                                    <Button disabled={isPinned(item.user_id)} onClick={() => addPinnedUser(item.user_id)} >Pin</Button>
+                                </TableCell> : <TableCell>{getKeyValue(item, columnKey)}</TableCell>}
+                            </TableRow>
+                        )}
+                    </TableBody>
+                </Table>
+            )}
+
+            {hasMoreResults && <Button onClick={fetchSearchResults}>Load more</Button>}
+            <br/>
+
             {pinnedUsers.length > 0 && (
                 <>
                     <text> Pinned Users:</text>
