@@ -68,22 +68,26 @@ export default function Header({user}: HeaderProps) {
                     <p className="font-bold text-inherit">TIPPSPIEL_NEXT</p>
                     </Link>
                 </NavbarBrand>
+            </NavbarContent>
+
+            <NavbarContent className="hidden sm:flex gap-3" justify="center">
                 <NavbarItem>
                     <Link color="foreground" href="/community">
                         Communities
                     </Link>
                 </NavbarItem>
                 {user &&
-                <NavbarItem>
-                    <Link href="/bet" aria-current="page">
-                        Bets
-                    </Link>
-                </NavbarItem>}
+                    <NavbarItem>
+                        <Link href="/bet" aria-current="page">
+                            Bets
+                        </Link>
+                    </NavbarItem>}
                 <NavbarItem>
                     <Link color="foreground" href="/admin">
                         Admin
                     </Link>
                 </NavbarItem>
+
             </NavbarContent>
 
             <NavbarContent justify="end">
