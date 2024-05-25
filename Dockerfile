@@ -16,15 +16,13 @@ RUN apt-get update && apt-get install -y curl && \
 # Install pnpm globally
 RUN npm install -g pnpm
 
-# Set working directory
-WORKDIR /app
-
 # Set timezone to Germany
 RUN ln -snf /usr/share/zoneinfo/Europe/Berlin /etc/localtime && echo Europe/Berlin > /etc/timezone
 
 # Copy from build stage
-COPY . /app
-RUN rm -rf /app/node_modules
+COPY . ./
+RUN rm -rf .next
+RUN rm -rf node_modules
 
 # Install dependencies using pnpm
 RUN pnpm install
@@ -32,7 +30,8 @@ RUN pnpm dlx next-ws-cli@latest patch
 RUN pnpm dlx prisma generate
 
 # Build the application
-RUN pnpm run build /app
+ENV NEXT_TELEMETRY_DISABLED 1
+RUN pnpm run build
 
 # Expose the next port
 EXPOSE 5173
