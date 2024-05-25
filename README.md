@@ -16,7 +16,7 @@ eingesetzt, um den möglichen Performance-Gewinn zu demonstrieren.
 ### Indizes
 Durch die Verwendung von Indizes kann die Performance von Datenbankabfragen erheblich
 verbessert werden. In _tippspiel-next_ wurden folgende Indizes erstellt:
-```postgresql
+```sql
 CREATE INDEX idx_user_id_username ON "User"(id, username);
 CREATE INDEX idx_community_member_user_id ON CommunityMember(community_id, user_id);
 CREATE INDEX idx_bet_user_id ON Bet(user_id, game_id);
@@ -29,7 +29,7 @@ Indizes erheblich verbessert werden konnte.
 Materialized Views sind eine Möglichkeit, die Performance von komplexen Abfragen zu
 verbessern. In _tippspiel-next_ wurde zwei `materialized Views` für die Rangliste 
 der Benutzer in einer Community erstellt.
-```postgresql
+```sql
 CREATE MATERIALIZED VIEW UserTotalPoints AS
 SELECT
     u.id AS user_id,
