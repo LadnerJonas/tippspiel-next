@@ -2,7 +2,7 @@
 import {useEffect, useState} from "react";
 import {Community, User} from "../../../types/prismaTypes";
 import SneakPreviewOfCommunity from "./sneakPreviewOfCommunity";
-import {Skeleton} from "@nextui-org/react";
+import {WebSocketProvider} from "next-ws/client";
 
 export default function SneakPreviewOfUser(props: { user: User }) {
     const user = props.user;
@@ -21,11 +21,14 @@ export default function SneakPreviewOfUser(props: { user: User }) {
     }, []);
 
     return (<div>
+        <WebSocketProvider url={`ws://localhost:5173/ws`}>
             {communities.length > 0 && communities.map((community) => {
                 return <div key={community.id}>
                     <h2>{community.name}</h2>
                     <SneakPreviewOfCommunity user={user} community_id={community.id}/>
                 </div>
             })}
+
+        </WebSocketProvider>
     </div>)
 }

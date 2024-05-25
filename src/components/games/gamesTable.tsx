@@ -15,7 +15,7 @@ import Link from "next/link";
 import {Game} from "../../types/prismaTypes";
 import {toZonedTime} from "date-fns-tz";
 import {getAllUpcomingGames} from "../../helper/GameFetcher";
-import {useWebSocket, WebSocketProvider} from "next-ws/client";
+import {useWebSocket} from "next-ws/client";
 
 export default function GamesTable({initialGames, href}:{ initialGames: Game[],  href : string}) {
     const ws = useWebSocket();
@@ -82,7 +82,6 @@ export default function GamesTable({initialGames, href}:{ initialGames: Game[], 
     console.log(ws)
     return (
         <div>
-            <WebSocketProvider url={`ws://localhost:5173/ws`}>
             <Skeleton isLoaded={games.length > 0}>
                 <Table aria-label={"games"}
                        bottomContent={
@@ -112,7 +111,6 @@ export default function GamesTable({initialGames, href}:{ initialGames: Game[], 
 
                 </Table>
             </Skeleton>
-            </WebSocketProvider>
         </div>
     );
 }

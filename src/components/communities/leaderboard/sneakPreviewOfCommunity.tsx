@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from "react";
+import React, {useCallback, useEffect, useState} from "react";
 import {SneakPreviewOfCommunityRow, User} from "../../../types/prismaTypes";
 import {
     getKeyValue, semanticColors,
@@ -10,6 +10,7 @@ import {
     TableHeader,
     TableRow
 } from "@nextui-org/react";
+import {useWebSocket} from "next-ws/client";
 
 type SneakPreviewOfCommunityProps = {
     community_id: number;
@@ -20,17 +21,26 @@ export default function SneakPreviewOfCommunity({user,community_id}: SneakPrevie
     if (!user) {
         return <p>You must be logged in to see the leaderboard.</p>;
     }
+    const ws = useWebSocket();
 
     const [sneakPreview, setSneakPreview] = useState<SneakPreviewOfCommunityRow[]>([]);
+    const fetchData = async () => {
+        const res = await fetch('http://localhost:5173/api/community/sneakPreviewOfLeaderBoard?community_id=' + community_id + '&user_id=' + user.id);
+        const data : SneakPreviewOfCommunityRow[] = await res.json();
+        setSneakPreview(data);
+    };
     useEffect(() => {
-        const fetchData = async () => {
-            const res = await fetch('/api/community/sneakPreviewOfLeaderBoard?community_id=' + community_id + '&user_id=' + user.id);
-            const data : SneakPreviewOfCommunityRow[] = await res.json();
-            setSneakPreview(data);
-        };
-
         fetchData();
     }, []);
+
+    const onMessage = useCallback(
+        async () => {
+            await fetchData();
+        },
+        [],
+    );
+
+    ws?.addEventListener('message', onMessage);
 
 
     const columns = [

@@ -6,8 +6,7 @@ import GamesTable from "../games/gamesTable";
 import ToastComponent from "../common/ToastComponent";
 import {ToastContainer} from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
-import {notifyClients} from "../../pages/api/old-websocket";
-import {useWebSocket, WebSocketProvider} from "next-ws/client";
+import {useWebSocket} from "next-ws/client";
 
 type GameFormProps = {
     game: Game;
