@@ -8,12 +8,14 @@ export default async function Bets() {
 
     return (
         <div>
-            <p className="text-3xl font-bold">Bets</p>
-            {betsWithGames.length > 0 ? betsWithGames.map(x => (
+            <p className="text-3xl">Bets</p>
+            {betsWithGames.length > 0 ? betsWithGames.sort((x,y) => x.id - y.id).map(x => (
                     <div key={x.id}>
-                        <p className="text-xl font-bold">Your Bet</p>
+                        <p className="text-2xl ">Your Bet #{x.id}</p>
                         <GamesTable initialGames={[x.game]} href={`/bet/game/${x.id}`}/>
+                        <div style={{paddingBottom: "3px"}}></div>
                         <BetTable x={x}/>
+                        <br/>
                     </div>))
                 :
                 <div>No bets found</div>

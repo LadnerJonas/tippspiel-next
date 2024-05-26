@@ -1,12 +1,11 @@
 'use client'
-import React, {useState, useEffect} from 'react'
-import {Input, Button, Progress} from '@nextui-org/react';
+import React, {useEffect, useState} from 'react'
+import {Button, Input, Progress} from '@nextui-org/react';
 import {Bet, Game} from "../../types/prismaTypes";
 import GamesTable from "../games/gamesTable";
 import {useRouter} from "next/navigation";
 import {ToastContainer} from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
-import {tr} from "date-fns/locale";
 import ToastComponent from "../common/ToastComponent";
 
 type BetFormProps = {

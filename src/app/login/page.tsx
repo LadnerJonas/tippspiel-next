@@ -29,13 +29,11 @@ export default function login() {
             <div style={{
                 display: 'flex',
                 flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
             }}>
-                <p className="text-3xl font-bold">Login</p>
+                <p className="text-3xl">Login</p>
 
                 <form onSubmit={submitData}
-                      style={{display: 'flex', flexDirection: 'column', width: '300px', gap: '20px'}} >
+                      style={{display: 'flex', flexDirection: 'column', width: '42vw', gap: '.5rem'}} >
                     <Input
                         size="lg"
                         placeholder="Username"

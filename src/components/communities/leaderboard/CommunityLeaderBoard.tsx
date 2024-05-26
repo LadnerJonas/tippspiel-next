@@ -121,32 +121,41 @@ export default function CommunityLeaderBoard(props: {
 
     return (
         <div>
-            <Input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder="Search users..." />
-            <Button onClick={fetchSearchResults}>Search</Button>
-
+            <p className={"text-2xl"}> Search Users:</p>
+            <div className={"flex w-full flex-wrap md:flex-wrap gap-1.5"}>
+                <Input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
+                       placeholder="Search users..."/>
+                <Button className={"w-full"} onClick={fetchSearchResults}>Search</Button>
+            </div>
             {searchResults.length > 0 && (
-                <Table aria-label={"CommunityLeaderboardSearchResults"}>
-                    <TableHeader columns={columns}>
-                        {(column) => <TableColumn key={column!.key}>{column!.label}</TableColumn>}
-                    </TableHeader>
-                    <TableBody items={searchResults}>
-                        {(item) => (
-                            <TableRow key={item.ranked_user_position}>
-                                {(columnKey) => columnKey == "pin" ? <TableCell>
-                                    <Button disabled={isPinned(item.user_id)} onClick={() => addPinnedUser(item.user_id)} >Pin</Button>
-                                </TableCell> : <TableCell>{getKeyValue(item, columnKey)}</TableCell>}
-                            </TableRow>
-                        )}
-                    </TableBody>
-                </Table>
-            )}
+                <div>
+                    <Table aria-label={"CommunityLeaderboardSearchResults"} className={"top-3"}>
+                        <TableHeader columns={columns}>
+                            {(column) => <TableColumn key={column!.key}>{column!.label}</TableColumn>}
+                        </TableHeader>
+                        <TableBody items={searchResults}>
+                            {(item) => (
+                                <TableRow key={item.ranked_user_position}>
+                                    {(columnKey) => columnKey == "pin" ? <TableCell>
+                                        <Button disabled={isPinned(item.user_id)}
+                                                onClick={() => addPinnedUser(item.user_id)}>Pin</Button>
+                                    </TableCell> : <TableCell>{getKeyValue(item, columnKey)}</TableCell>}
+                                </TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
 
-            {hasMoreResults && <Button onClick={fetchSearchResults}>Load more</Button>}
-            <br/>
+                </div>
+            )
+            }
+
+            {
+                hasMoreResults && <Button onClick={fetchSearchResults}>Load more</Button>}
 
             {pinnedUsers.length > 0 && (
                 <>
-                    <text> Pinned Users:</text>
+                    <br/>
+                    <p className={"text-2xl"}> Pinned Users:</p>
                     <Table aria-label={"CommunityLeaderboardPinnedUsers"}>
                         <TableHeader columns={columns}>
                             {(column) => <TableColumn key={column!.key}>{column!.label}</TableColumn>}
@@ -154,20 +163,20 @@ export default function CommunityLeaderBoard(props: {
                         <TableBody items={pinnedUsers}>
                             {(item) => {
                                 return (
-                                <TableRow key={item.ranked_user_position}
-                                          style={item.username === props.user?.username ? {backgroundColor: semanticColors.dark.default[100]} : {}}>
-                                    {(columnKey) => columnKey == "pin" ? <TableCell>
-                                        <Button onPress={() => removePinnedUser(item.pinned_user_id)}>Unpin</Button>
-                                    </TableCell> : <TableCell>{getKeyValue(item, columnKey)}</TableCell>}
+                                    <TableRow key={item.ranked_user_position}
+                                              style={item.username === props.user?.username ? {backgroundColor: semanticColors.dark.default[100]} : {}}>
+                                        {(columnKey) => columnKey == "pin" ? <TableCell>
+                                            <Button onPress={() => removePinnedUser(item.pinned_user_id)}>Unpin</Button>
+                                        </TableCell> : <TableCell>{getKeyValue(item, columnKey)}</TableCell>}
 
-                                </TableRow>)
-                                }}
+                                    </TableRow>)
+                            }}
                         </TableBody>
                     </Table>
                     <br/>
                 </>
             )}
-            <text>Community Leaderboard: </text>
+            <p className={"text-2xl"}>Community Leaderboard:</p>
             <Table aria-label={"CommunityLeaderboard"}
                    bottomContent={(topUsers.length % 10 == 0 || merged && topUsers.length % 10 == 9) &&
                        <Button onClick={fetchNextTopUsers}>⮟</Button>}>
@@ -179,7 +188,8 @@ export default function CommunityLeaderBoard(props: {
                         <TableRow key={item.ranked_user_position}
                                   style={item.username === props.user?.username ? {backgroundColor: semanticColors.dark.default[100]} : {}}>
                             {(columnKey) => columnKey == "pin" ? <TableCell>
-                                <Button disabled={isPinned(item.user_id)} onClick={() => addPinnedUser(item.user_id)} >Pin</Button>
+                                <Button disabled={isPinned(item.user_id)}
+                                        onClick={() => addPinnedUser(item.user_id)}>Pin</Button>
                             </TableCell> : <TableCell>{getKeyValue(item, columnKey)}</TableCell>}
                         </TableRow>
                     )}
@@ -197,7 +207,8 @@ export default function CommunityLeaderBoard(props: {
                             <TableRow key={item.ranked_user_position}
                                       style={item.username === props.user?.username ? {backgroundColor: semanticColors.dark.default[100]} : {}}>
                                 {(columnKey) => columnKey == "pin" ? <TableCell>
-                                    <Button disabled={isPinned(item.user_id)} onClick={() => addPinnedUser(item.user_id)} >Pin</Button>
+                                    <Button disabled={isPinned(item.user_id)}
+                                            onClick={() => addPinnedUser(item.user_id)}>Pin</Button>
                                 </TableCell> : <TableCell>{getKeyValue(item, columnKey)}</TableCell>}
                             </TableRow>
                         )}

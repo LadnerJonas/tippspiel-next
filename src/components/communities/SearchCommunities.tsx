@@ -11,20 +11,22 @@ export function SearchCommunities({communities, isAllCommunities}: { communities
     const elements = 15;
     return (
         <div>
-            <h1>Communities</h1>
+            <p className="text-xl"> {isAllCommunities ? "All" : "Your"} Communities</p>
             <Input type="" value={communityNameFilter}
                    onValueChange={setCommunityNameFilter}
                    label={isAllCommunities ? "Search in all communities" : "Search in your communities"}/>
-            <div style={{display: 'flex', flexWrap: 'wrap', width: "50vw"}}>
-                {communities.filter(community =>
+            <div style={{display: 'flex', flexWrap: 'wrap', width: "50vw", paddingTop: '5px'}}>
+                {communities.sort((x,y) => {
+                    if(x.name.length != y.name.length) return x.name.length - y.name.length
+                    return x.name.localeCompare(y.name)
+                }).filter(community =>
                     community.name.toLowerCase().indexOf(communityNameFilter.toLowerCase()) !== -1).slice(0, elements)
                     .map((community) => (
-                    <Card key={community.id}>
+                    <Card key={community.id} style={{marginRight: "3px", marginBottom: "3px"}}>
                         <CardBody>
-                            {community.id == 0 ? community.name :
-                                <Link href={`/community/${community.id}`}>
-                                    {community.name}
-                                </Link>}
+                            <Link href={`/community/${community.id}`} className={"text-sm"}>
+                                {community.name}
+                            </Link>
                         </CardBody>
                     </Card>))
                 }

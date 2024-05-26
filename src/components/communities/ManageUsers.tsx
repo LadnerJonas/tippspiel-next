@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import {Button} from "@nextui-org/react";
+import {Button, Input} from "@nextui-org/react";
 import {User} from "../../types/prismaTypes";
 
 
@@ -60,25 +60,28 @@ export default function ManageUsers({ communityId, users, setUsers }: ManageUser
 
     return (
         <div>
-            <h2>Manage Users</h2>
-            <div>
-                <input
-                    type="text"
-                    value={userNameToAdd}
-                    onChange={(e) => setUserNameToAdd(e.target.value)}
-                    placeholder="Username to add"
-                />
-                <Button onClick={handleAddUser}>Add User</Button>
+            <p className={"text-2xl"}>Manage Users</p>
+            <div className={"gap-1.5"} style={{display: 'flex', flexWrap: 'nowrap', width: "50vw", paddingTop: '5px'}}>
+                <div className={"w-1/2 flex flex-wrap md:flex-wrap gap-1.5"}>
+                    <Input
+                        type="text"
+                        value={userNameToAdd}
+                        onChange={(e) => setUserNameToAdd(e.target.value)}
+                        placeholder="Username to add"
+                    />
+                    <Button className={"w-full"}  color={"success"}  onClick={handleAddUser}>Add User</Button>
+                </div>
+                <div className={"w-1/2 flex flex-wrap md:flex-wrap gap-1.5"}>
+                    <Input
+                        type="text"
+                        value={userNameToRemove}
+                        onChange={(e) => setUserNameToRemove(e.target.value)}
+                        placeholder="Username to remove"
+                    />
+                    <Button className={"w-full"} color={"danger"} onClick={handleRemoveUser}>Remove User</Button>
+                </div>
             </div>
-            <div>
-                <input
-                    type="text"
-                    value={userNameToRemove}
-                    onChange={(e) => setUserNameToRemove(e.target.value)}
-                    placeholder="Username to remove"
-                />
-                <Button onClick={handleRemoveUser}>Remove User</Button>
-            </div>
+            <br/>
         </div>
     );
 }

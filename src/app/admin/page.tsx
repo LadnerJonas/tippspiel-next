@@ -4,7 +4,7 @@ import UpcomingGames from "../../components/games/upcomingGames";
 export default function Page() {
     return (
         <div>
-            <h1>Admin Page</h1>
+            <p className={"text-3xl"}>Admin Page</p>
             <UpcomingGames href={"/admin/game/"}/>
         </div>
     );

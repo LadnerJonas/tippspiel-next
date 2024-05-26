@@ -2,6 +2,7 @@
 import React, {useEffect, useState} from 'react';
 import ManageUsers from './ManageUsers';
 import {Community, User} from "../../types/prismaTypes";
+import {Card, CardBody} from "@nextui-org/card";
 
 
 type CommunityInfoProps = {
@@ -18,14 +19,19 @@ export default function CommunityInfo({ community , users: initialUsers }: Commu
 
     return (
         <div>
-            <h1>{community.name}</h1>
+            <p className={"text-3xl"}>{community.id === 0 ? "All Users Community" : community.name }</p>
             {community.id !== 0 &&
-                <ul>
+                <div style={{display: 'flex', flexWrap: 'wrap', width: "50vw", paddingTop: '5px'}}>
                     {users.map((user) => (
-                        <li key={user.id}>{user.username}</li>
+                        <Card key={user.id} style={{marginRight: "3px", marginBottom: "3px"}}>
+                            <CardBody>
+                                {user.username}
+                            </CardBody>
+                        </Card>
                     ))}
-                </ul>
+                </div>
             }
+            <br/>
             <ManageUsers communityId={community.id} users={users} setUsers={setUsers}/>
         </div>
     );

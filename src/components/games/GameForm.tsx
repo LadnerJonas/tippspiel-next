@@ -58,8 +58,9 @@ const GameForm: React.FC<GameFormProps> = ({game}) => {
     };
 
     return (
-        <div style={{display: 'flex', flexDirection: 'column', gap: '1rem'}}>
+        <div style={{display: 'flex', flexDirection: 'column', gap: '.5rem'}}>
             <ToastContainer theme="dark"/>
+            <p className={"text-3xl"}>Edit Game State</p>
             <GamesTable initialGames={[game]} href={`/admin/game/${game.id}`}/>
             <Input
                 type="number"

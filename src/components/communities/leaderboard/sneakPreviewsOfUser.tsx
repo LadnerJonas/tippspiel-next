@@ -22,10 +22,13 @@ export default function SneakPreviewOfUser(props: { user: User }) {
 
     return (<div>
         <WebSocketProvider url={`ws://localhost:5173/ws`}>
+            <p className="text-3xl">Sneakpreviews</p>
+            <p>See your current rank in each of your communities.</p>
             {communities.length > 0 && communities.map((community) => {
                 return <div key={community.id}>
-                    <h2>{community.name}</h2>
+                    <p className="text-xl">{community.name}</p>
                     <SneakPreviewOfCommunity user={user} community_id={community.id}/>
+                    <br/>
                 </div>
             })}
 

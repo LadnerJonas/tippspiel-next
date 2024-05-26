@@ -20,11 +20,14 @@ export default function CreateNewCommunity({user}: { user: ReturnType<typeof get
 
     return (
         <div>
-            <h1>Create New Community</h1>
+            <p className="text-xl">Create New Community</p>
             <p>Here you can create a new community!</p>
             <form onSubmit={createCommunity}>
-                <Input value={communityName} onValueChange={setCommunityName}/>
-                <Input type="submit" disabled={communityName.length <3} value="Create Community"/>
+                <div className={"flex w-full flex-wrap md:flex-wrap gap-1.5"} >
+                    <Input className={"w-full"} value={communityName} onValueChange={setCommunityName}/>
+                    <Input type="submit" disabled={communityName.length < 3}
+                           value="Create Community" style={{color: "primary"}}/>
+                </div>
             </form>
         </div>
     )
