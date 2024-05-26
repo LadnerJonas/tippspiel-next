@@ -6,7 +6,7 @@ Datenbank.
 
 # Performance Optimierungen
 
-Um die Performance der Anwendung sinnvoll messen zu können, wurde überwiegend auf die
+Um die Performance der Anwendung sinnvoll messen zu können, wurde auf die
 Nutzung von Caches verzichtet. Nur in wenigen ausgewiesenen Benchmarks wurde ein Cache
 eingesetzt, um den möglichen Performance-Gewinn zu demonstrieren.
 
@@ -22,12 +22,11 @@ CREATE INDEX idx_community_member_user_id ON CommunityMember(community_id, user_
 CREATE INDEX idx_bet_user_id ON Bet(user_id, game_id);
 CREATE INDEX idx_ranked_users ON RankedUsersMV(community_id,user_id,ranked_user_position);
 ```
-Durch Experimente konnte gezeigt werden, dass die Performance durch diese vier
-Indizes erheblich verbessert werden konnte.
+Dadurch können alle Abfragen in wenigen Millisekunden ausgeführt werden. 
 
 ### Materialized Views
-Materialized Views sind eine Möglichkeit, die Performance von komplexen Abfragen zu
-verbessern. In _tippspiel-next_ wurde zwei `materialized Views` für die Rangliste 
+Materialized Views sind eine Möglichkeit, die Performance von komplexen Abfragen aus 
+mehreren Tabellen zu verbessern. In _tippspiel-next_ wurden zwei `materialized Views` für die Rangliste 
 der Benutzer in einer Community erstellt.
 ```sql
 CREATE MATERIALIZED VIEW UserTotalPoints AS
@@ -59,17 +58,17 @@ FROM
 ORDER BY ranked_user_position;
 ```
 Diese zwei `materialized Views` verbessern die Performance der Rangliste-Abfragen 
-signifikant (wenige Millisekunden). Allerdings wird die Aktualisierung der `materialized Views` nicht von
+signifikant (wenige Millisekunden). Allerdings wird die inkrementelle Aktualisierung der `materialized Views` nicht von
 PostgreSQL unterstützt. Daher müssen die `materialized Views` manuell aktualisiert
 werden. In _tippspiel-next_ wurden triggers verwendet, um die `materialized Views`
 nach jeder Änderung in der Datenbank zu aktualisieren. Dies führt bei 2 Millionen Nutzern
-leider zu einer Verzögerung von ca. 4-6 Sekunden pro Änderung. 
+leider zu einer Verzögerung von ca. 4-6 Sekunden pro Änderung (z.B. Aktualisierung Spielstand). 
 
 Gelöst werden könnte dieses Problem durch die Verwendung von `incremental updates` für
 `materialized Views`. Leider wird diese Funktion von PostgreSQL [nicht unterstützt](https://wiki.postgresql.org/wiki/Incremental_View_Maintenance).
 > Incremental View Maintenance (IVM) is a technique to maintain materialized views which computes and applies only the incremental changes to the materialized views rather than recomputing the contents as the current REFRESH command does. This feature is not implemented on PostgreSQL yet.
 
-Das würde die Aktualisierung der `materialized Views` auf wenige Millisekunden beschleunigen.
+Das würde die Aktualisierung der `materialized Views` auf wenige Millisekunden reduzieren.
 Nur im Falle einer Änderung eines Spielergebnisses müsste die Rangliste neu berechnet werden, was etwa 4-6 Sekunden dauert.
 
 ## Backend
@@ -81,18 +80,100 @@ Ladezeit der Anwendung erheblich reduziert. Weiters rendert Next.js auch schon T
 der Benutzeroberfläche serverseitig, was die Ladezeit der Anwendung weiter reduziert.
 ## Frontend
 
-Next.js kompiliert und minimiert den Code und Bilder automatisch. Dadurch wird die Ladezeit der
-Website wesentlich reduziert.
+Next.js kompiliert und minimiert den Code und Bilder automatisch. Auch dadurch wird die Ladezeit der
+Website reduziert.
 
 
 # Benchmarks
+Die Benchmarks wurden mit dem Tool `Apache Benchmark` durchgeführt. Es wurde 15.000
+sneakPreview-Leaderboard-Abfragen durchgeführt. Mit etwa 600ms bis 1300ms pro Abfrage
+ist diese die teuerste Lese-Operation in der Anwendung. Hier finden Sie die Abfrage:
+```sql
+CREATE OR REPLACE FUNCTION generate_sneak_preview_leaderboard(p_community_id INT, logged_in_user_id INT)
+    RETURNS TABLE (
+                      f_username VARCHAR(255),
+                      f_total_points INT,
+                      f_ranked_user_position INT,
+                      f_rank INT
+                  )
+AS
+$$
+BEGIN
+    RETURN QUERY
+        WITH
+            RankedUsersMVOfCommunity AS (
+                SELECT *
+                FROM RankedUsersMV RU
+                WHERE RU.community_id = p_community_id
+            ),
+            UserPosition AS (
+                SELECT *
+                FROM
+                    RankedUsersMVOfCommunity
+                WHERE
+                    user_id = logged_in_user_id
+                limit 1
+            ),
+            MaxPosition AS (
+                SELECT MAX(ranked_user_position) AS max_rup FROM RankedUsersMV WHERE community_id = p_community_id limit 1
+            ),
+            PreviewUsers AS (
+                /* logged in user */
+                SELECT * FROM UserPosition
+                UNION
+                /* first three and last user */
+                SELECT *
+                FROM RankedUsersMVOfCommunity RUOC
+                WHERE (RUOC.ranked_user_position <= 3 OR RUOC.ranked_user_position = (SELECT max_rup FROM MaxPosition))
+                   OR ((SELECT ranked_user_position FROM UserPosition) >= 5 AND
+                       (SELECT ranked_user_position FROM UserPosition) <= (SELECT max_rup - 2 FROM MaxPosition)
+                    AND ABS(RUOC.ranked_user_position - (SELECT ranked_user_position FROM UserPosition)) = 1)
+                   OR ((SELECT ranked_user_position FROM UserPosition) <= 4 AND RUOC.ranked_user_position <= 6)
+                   OR ((SELECT ranked_user_position FROM UserPosition) > (SELECT max_rup - 2 FROM MaxPosition)
+                    AND RUOC.ranked_user_position >= (SELECT max_rup - 3 FROM MaxPosition))
+                   OR ((SELECT max_rup FROM MaxPosition) <= 7)
+            )
+        SELECT DISTINCT on (ranked_user_position)
+            PU.username AS f_username,
+            PU.total_points AS f_total_points,
+            PU.ranked_user_position AS f_ranked_user_position,
+            PU.rank AS f_rank
+        FROM
+            PreviewUsers PU
+        ORDER BY
+            ranked_user_position
+        limit 7;
+END;
+$$
+    LANGUAGE plpgsql;
+```
+Ausgehend darauf wurden dann die Benchmarks mit 15.000 Abfragen durchgeführt.  Es lief eine
+einzelne Instanz der next.js-Anwendung (single threaded) und der PostgreSQL-Datenbank auf
+einem 8-Kern-AMD-6850U-Prozessor mit 32 GB RAM. Die Datenbank wurde mit 2 Millionen User gefüllt.
+
+Ich vergleiche
+drei Varianten der API-Abfrage getestet: Persistenter Cache (Next.js Geschwindigkeit), 1s-
+persistenter Cache und kein Cache. Die Ergebnisse sind in der folgenden Übersicht zu sehen:
+![benchmark-charts](./benchmark/charts/sneakPreview-charts.png)
+
+## Interpretation
+Da hier die teuerste Lese-Operation der Anwendung gemessen wurde, kann unter Nutzung des
+1s-persistenten Caches die Anforderung mit 10.000 gleichzeitigen Benutzern erfüllt werden.
+Unter der Annahme, dass jeder Nutzer eine Abfrage pro Sekunde durchführt, reicht es schon
+aus, wenn 4 next.js-Instanzen und 1 PostgreSQL-Instanz aktiv sind.
 
 # Mögliche Erweiterungen zur Verbesserung der Performance
 
 ## System Design
-load balancing, caching, horizontal scaling
+![system-design](./benchmark/charts/Tippspiel_Next.drawio.svg)
+
 ## Datenbank
-[pq-ivm](https://github.com/sraoss/pg_ivm)
+Durch die Verwendung des  
+[pq-ivm](https://github.com/sraoss/pg_ivm) Moduls können `incremental updates` für `materialized Views` genutzt werden.
+Dies würde den Großteil der Aktualisierung der `materialized Views` auf wenige Millisekunden reduzieren.
+
+## Microkernels
+Microkernels können die Performance von Anwendungen durch die Reduktion der Abstraktionsschichten [verbessern](https://unikraft.org/docs/concepts/performance).
 
 # Videos und Screenshots
 
@@ -141,3 +222,7 @@ load balancing, caching, horizontal scaling
 ```
 
 # Docker Setup
+```zsh
+> docker-compose up --build
+> firefox http://localhost:5173/
+```
