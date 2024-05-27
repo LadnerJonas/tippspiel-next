@@ -22,10 +22,11 @@ CREATE INDEX idx_community_member_user_id ON CommunityMember(community_id, user_
 CREATE INDEX idx_bet_user_id ON Bet(user_id, game_id);
 CREATE INDEX idx_ranked_users ON RankedUsersMV(community_id,user_id,ranked_user_position);
 ```
-Dadurch können alle Abfragen in wenigen Millisekunden ausgeführt werden. 
+Dadurch können alle Abfragen, die keine erneute Berechnung der nachfolgenden Views
+erfordern, in wenigen Millisekunden ausgeführt werden. 
 
 ### Materialized Views
-Materialized Views sind eine Möglichkeit, die Performance von komplexen Abfragen aus 
+`Materialized Views` sind eine Möglichkeit, die Performance von komplexen Abfragen aus 
 mehreren Tabellen zu verbessern. In _tippspiel-next_ wurden zwei `materialized Views` für die Rangliste 
 der Benutzer in einer Community erstellt.
 ```sql
@@ -169,12 +170,16 @@ aus, wenn 4 next.js-Instanzen und 1 PostgreSQL-Instanz aktiv sind.
 
 ## System Design
 ![system-design](./benchmark/charts/Tippspiel_Next.drawio.svg)
+Durch das angedeutete Systemdesign könnte die Anwendung auf mehrere Instanzen auf den einzelnen
+Schichten aufgeteilt werden. Dadurch wären nahezu unbegrenzt viele Benutzer möglich.
+
 
 ## Datenbank
-Durch die Verwendung des  
-[pq-ivm](https://github.com/sraoss/pg_ivm) Moduls können `incremental updates` für `materialized Views` genutzt werden.
+Durch die Verwendung des [pq-ivm](https://github.com/sraoss/pg_ivm) Moduls können `incremental updates` für `materialized Views` genutzt werden.
 Dies würde den Großteil der Aktualisierung der `materialized Views` auf wenige Millisekunden reduzieren.
 
+Ebenfalls wäre es möglich ausgehend von dem aktuellen Spielergebnis `x : y` bereits die
+zwei möglichen nachfolgenden Spielergebnisse (`x+1 : y` oder `x : y+1`) vorauszuberechnen.
 ## Microkernels
 Microkernels können die Performance von Anwendungen durch die Reduktion der Abstraktionsschichten [verbessern](https://unikraft.org/docs/concepts/performance).
 
@@ -229,3 +234,6 @@ Microkernels können die Performance von Anwendungen durch die Reduktion der Abs
 > docker-compose up --build
 > firefox http://localhost:5173/
 ```
+Je nach Dockerversion funktioniert leider die Initialisierung der Datenbank nicht. 
+In diesem Fall müssen entsprechend der Konfiguration im Dockerfile die zwei SQL-Skripten
+ausgeführt werden.
