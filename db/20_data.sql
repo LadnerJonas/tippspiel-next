@@ -58,7 +58,7 @@ VALUES
 
 -- Generate 2 million users
 INSERT INTO "User" (username)
-SELECT 'user' || generate_series(1, 2000);
+SELECT 'user' || generate_series(1, 2000000);
 
 -- Create the "All Users" community
 INSERT INTO Community (id, name)
@@ -82,12 +82,7 @@ INSERT INTO Community (name)
 SELECT 'Community ' || generate_series(1, 100);
 
 -- Generate some random community members
-INSERT INTO CommunityMember (community_id, user_id)
-SELECT
-    (SELECT id FROM Community ORDER BY random() LIMIT 1),
-    (SELECT id FROM "User" ORDER BY random() LIMIT 1)
-FROM
-    generate_series(1, 1000);
+-- TODO
 
 -- Generate some random bets for each user
 INSERT INTO Bet (user_id, game_id, home_team_goals, away_team_goals)
