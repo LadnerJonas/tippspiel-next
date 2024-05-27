@@ -14,6 +14,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 FROM RankedUsersMV
                 WHERE user_id = ${userId} AND community_id = ${communityId}
             `;
+            if(!userPosition || userPosition.length === 0) return res.status(404).json([]);
 
             let leaderboard: unknown;
             if (page > 0){

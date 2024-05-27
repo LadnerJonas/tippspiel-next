@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import {Button, Input} from "@nextui-org/react";
+import {Button, Input, Progress} from "@nextui-org/react";
 import {User} from "../../types/prismaTypes";
 
 
@@ -14,7 +14,7 @@ export default function ManageUsers({ communityId, users, setUsers }: ManageUser
 
     const [userNameToAdd, setUserNameToAdd] = useState('');
     const [userNameToRemove, setUserNameToRemove] = useState('');
-
+    const [loading, setLoading] = useState(false);
 
 
     useEffect(() => {
@@ -23,6 +23,7 @@ export default function ManageUsers({ communityId, users, setUsers }: ManageUser
 
     const handleAddUser = async () => {
         try {
+            setLoading(true)
             const response = await fetch(`/api/community/user?community_id=${communityId}`, {
                 method: 'POST',
                 headers: {
@@ -33,19 +34,23 @@ export default function ManageUsers({ communityId, users, setUsers }: ManageUser
             const response2 = await response.json();
             setUsers( [...users, {id: response2.user_id, username: userNameToAdd, created_at: new Date()}])
             setUserNameToAdd('');
+            window.location.reload()
         } catch (error) {
             console.error('Error adding user:', error);
+        } finally {
+            setLoading(false)
         }
     };
 
     const handleRemoveUser = async () => {
         try {
-            const response = await fetch(`/api/community/user?community_id=${communityId}`, {
+            setLoading(true)
+            const response = await fetch(`/api/community/userManagement?community_id=${communityId}`, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ username: userNameToRemove }),
+                body: JSON.stringify({ userId: userNameToRemove, communityId: communityId}),
             });
             if(response.status !== 204) {
                 setUserNameToRemove("invalid username")
@@ -53,8 +58,12 @@ export default function ManageUsers({ communityId, users, setUsers }: ManageUser
             }
             setUsers((prevUsers) => prevUsers.filter((user) => user.username !== userNameToRemove));
             setUserNameToRemove('');
+            window.location.reload()
         } catch (error) {
             console.error('Error removing user:', error);
+        }
+        finally {
+            setLoading(false)
         }
     };
 
@@ -81,6 +90,16 @@ export default function ManageUsers({ communityId, users, setUsers }: ManageUser
                     <Button className={"w-full"} color={"danger"} onClick={handleRemoveUser}>Remove User</Button>
                 </div>
             </div>
+            {loading && <div>
+                <br/>
+                <Progress
+                    size="sm"
+                    isIndeterminate
+                    aria-label="Loading..."
+                    hidden={!loading}
+                />
+            </div>
+            }
             <br/>
         </div>
     );

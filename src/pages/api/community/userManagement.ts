@@ -54,7 +54,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             }
             const user = await prisma.user.findUnique({
                 where: {
-                    id: userId,
+                    username: userId,
                 },
             });
             if (!user) {
@@ -63,7 +63,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             const existingMembership = await prisma.communitymember.findFirst({
                 where: {
                     community_id: communityId,
-                    user_id: userId,
+                    user_id: user.id,
                 },
             });
             if (!existingMembership) {
@@ -71,7 +71,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             }
             await prisma.communitymember.delete({
                 where: {
-                    id: existingMembership.id,
+                    community_id_user_id: {
+                        community_id: communityId, user_id: user.id
+                    },
                 },
             });
             res.status(204).end();
