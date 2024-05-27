@@ -147,6 +147,9 @@ END;
 $$
     LANGUAGE plpgsql;
 ```
+```zsh
+> ab -n 15000 -c 10 http://localhost:5173/api/community/sneakPreviewOfLeaderBoard\?community_id\=0\&user_id\=1
+```
 Ausgehend darauf wurden dann die Benchmarks mit 15.000 Abfragen durchgeführt.  Es lief eine
 einzelne Instanz der next.js-Anwendung (single threaded) und der PostgreSQL-Datenbank auf
 einem 8-Kern-AMD-6850U-Prozessor mit 32 GB RAM. Die Datenbank wurde mit 2 Millionen User gefüllt.
