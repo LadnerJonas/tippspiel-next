@@ -139,8 +139,6 @@ FROM
     UserTotalPoints UT ON CM.user_id = UT.user_id
 ORDER BY ranked_user_position;
 
--- Create an index on RankedUsersMV for better performance
-CREATE INDEX idx_ranked_users_mv_user_id ON RankedUsersMV(user_id,ranked_user_position);
 
 CREATE OR REPLACE VIEW CommunityLeaderboard_AllUsers AS
 SELECT
@@ -173,8 +171,8 @@ CREATE TRIGGER update_user_total_points_Bet_trigger
     AFTER UPDATE OF points_earned ON Bet
 EXECUTE FUNCTION refresh_ranked_users_mv();
 
-CREATE TRIGGER update_user_total_points_Bet_trigger
-    AFTER INSERT OR UPDATE ON CommunityMember
+CREATE OR REPLACE Trigger update_user_total_points_CommunityMember_trigger
+    AFTER INSERT OR UPDATE OR DELETE ON CommunityMember
 EXECUTE FUNCTION refresh_ranked_users_mv();
 
 -- Create a function to generate the sneak preview of Community Leaderboards
@@ -242,12 +240,10 @@ $$
 CREATE INDEX idx_user_id_username ON "User"(id, username);
 
 -- Create index on CommunityMember.user_id
-CREATE INDEX idx_community_member_user_id ON CommunityMember(community_id,user_id);
+CREATE INDEX idx_community_member_user_id ON CommunityMember(community_id, user_id);
 
--- Create index on Bet.user_id
-CREATE INDEX idx_bet_user_id ON Bet(user_id);
+-- Create index on Bet.user_id and Bet.game_id
+CREATE INDEX idx_bet_user_id ON Bet(user_id, game_id);
 
--- Create index on Bet.game_id
-CREATE INDEX idx_bet_game_id ON Bet(game_id);
-
-CREATE INDEX idx_ranked_users_mv_community_id ON RankedUsersMV(community_id,ranked_user_position);
+-- Create index on RankedUsersMV for better performance
+CREATE INDEX idx_ranked_users ON RankedUsersMV(community_id,user_id,ranked_user_position);
