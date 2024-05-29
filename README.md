@@ -5,7 +5,8 @@ Der Fokus lag in der Performance-Optimierung der Anwendung, insbesondere der
 Datenbank.
 
 # Feature Video
-<iframe width="560" height="315" src="https://www.youtube.com/embed/f4Nb2485RX4?si=VHnaHHhtJNfuj7fQ" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+[![Feature Video](https://img.youtube.com/vi/f4Nb2485RX4/maxresdefault.jpg)](https://youtu.be/f4Nb2485RX4)
+
 
 # Performance Optimierungen
 
