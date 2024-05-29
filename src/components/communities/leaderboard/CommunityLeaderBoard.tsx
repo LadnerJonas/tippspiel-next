@@ -87,6 +87,7 @@ export default function CommunityLeaderBoard(props: {
         });
         const newPinnedUser = await response.json();
         pinnedUsers.push(newPinnedUser);
+        pinnedUsers.sort((a, b) => a.ranked_user_position - b.ranked_user_position);
         window.location.reload()
     };
 

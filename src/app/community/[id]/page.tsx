@@ -21,6 +21,7 @@ export default async function CommunityPage({params}: { params: { id: number } }
     if(user){
         initialLeaderBoardAroundUser = await fetch(`http://${process.env.SERVER_ADDRESS}/api/community/paginatedLeaderboard/pageOfUsersAroundUser?communityId=${params.id}&userId=${user.id}`, {cache: "no-cache"}).then((res) => res.json());
         initialPinnedUsers = await fetch(`http://${process.env.SERVER_ADDRESS}/api/pinning?userId=${user.id}&communityId=${params.id}`, {cache: "no-cache"}).then((res) => res.json());
+        initialPinnedUsers.sort((a, b) => a.ranked_user_position - b.ranked_user_position);
     }
 
     return (<div>
